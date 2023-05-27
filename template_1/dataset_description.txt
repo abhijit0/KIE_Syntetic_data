@@ -1,0 +1,16 @@
+input_ids : tokenize the ocr text extracted / flatten the text to be put in the document, using bert tokenizer on german language, extract ids from the tokenizer.
+    * Reading order of input ids is same as reading order of bbox
+
+entities : two arrays, start and end which contain start and end token ids at repective index. e.g start = [8, 20 , 35, 40], end = [13, 25, 39, 44] then the entity 1 would be tokens from 8-13 , entity 2 20-25 ,etc
+
+labels : label for each entity . lables: header, Question , Answer
+
+bbox: bounding box for each token / input ids
+relations: contains indices of 'entities' in terms of head and tail. head refers to question and tail refers to answer. 
+    * e.g head =  [2, 4, 6, 8]
+          tail =  [3, 5, 7, 9]
+          entities (tokens formed based on start:end in entities column) = ['INFORMATION DE BASE', 'IDENTIFICATION ET DESCRIPTION DU PROJET', 'Nom', 'Martin']
+          for relation head[0] = 2 , tail[0] = 3
+          relation -> Nom : Martin
+
+
