@@ -119,95 +119,7 @@ global_keys = {
   'key-val-spacing' : 140
     
 }}
-client_address = {
-  'line1' : 'UniImmo:Deutschland',
-  'line2' : 'c/o Union Investment Real Estate GmbH',
-  'line3' : 'Valentinskamp 70',
-  'line4' : 'D-20355 Hamburg'
-}
 
-client_address_config ={
-  'font' : 'Arial',
-  'line_break' : 12,
-  'font_size' : 12
-}
-
-evaluator_address = {
-  'address' :{
-    'line1' : 'DEKRA Automobil GmbH',
-    'line2' : 'Industrie, Bau und Immobilien',
-    'line3' : 'Niederlassung Hamburg',
-    'line4' : 'Essener Bogen 10',
-    'line5' : '22419 Hamburg'
-    },
-  'Telefon' : '+49.40.23603-0',
-  'Telefax' : '+49.40.23603-810',
-  'Kontakt' : {
-    'line1' : 'Dipl.-Ing. (FH) Olaf Graf',
-    'line2' :'Tel. direkt +49.40.23603-839',
-    'line3' : 'E-Mail olaf.graf@dekra.com',
-  },
-  
-  'Anlagenschlüssel' : ' AGD669E7NK'
-}
-
-evaluator_address_config = {
-  'font':'Arial',
-  'line_break' : 10,
-  'font_size' : 8,
-  'new_line':['Telefax', 'kontakt']
-}
-
-test_certificate = {
-  'Prüfbescheinigung' : 'Wiederkehrende Prüfung (Hauptprüfung)'
-}
-
-test_certificate_config = {
-  'font_size' : 16,
-  'font_type': 'Arial-Bold',
-  'line-break' : 25 # should be 25-30
-}
-
-test_certificate_results = {
-  'Prüfgrundlage' : 'gem. § 16 BetrSichV', #Str some code related to legal documents
-  'Objektstandort' : 'Bürogebäude, Valentinskamp 70, 20355 Hamburg, Aufzug E', #str address
-  'Objektart / Anlage' : 'Personenaufzug', #Str type of elevator
-  'Fabrik-Nr.' : '1118365', #long 6-9 digits
-  'Arbeitgeber' : client_address['line1'],
-  'Eigennummer' : 'HC-ID 13011', # str(2)-str(2) 5 digit number,
-  'Eigenname' : 'WE 1172',
-  'Verwendete Messgeräte' : 'Profitest 0100, Prüfgewichte', ## Not clear str followed by some 4 digit num and then str 
-}
-
-test_certificate_results_config = {
-  'font_size' : 10,
-  'font-type-keys' : 'Arial-Bold',
-  'font-type-vals' : 'Arial',
-  'vertical-left-only' : ['Objektstandort', 'Arbeitgeber'],
-  'line-break' : 20,
-  'key-val-spacing': 140
-  
-}
-
-technical_specifications ={
-    'Baujahr': 2011, #int year 2000 < year <2023
-    'Wartungsfirma': 'Schindler Aufzüge und Fahrtreppen GmbH Region Nord', #Str need to go through the template to decide the pattern
-    'Errichtungsgrundlage' : 'EN 81-1: 1998+A3: 2009', # contains alpha numerical, year, need to check more docs to get the patterm
-    'Antrieb / Aufhängung' : 'Treibscheibe / 2:1', # contains part name followed by ratio (only key needs to be split by '/' to generate synonyms for each key)
-    'Hersteller': 'Schindler Aufzüge und Fahrtreppen GmbH Region Nord',
-    'Tragfähigkeit' : '1350 kg / 18 Pers', # kg and persons
-    'Haltestellen / Zugangstellen' : '26 / 26', #int
-    'Geschwindigkeit': '4,00 m/s', #time / speet
-    'Förderhöhe' : '93,68 m' #distance in meters
-}
-
-technical_specifications_config = {
-  'font_size' : 10,
-  'font-type-keys' : 'Arial-Bold',
-  'font-type-vals' : 'Arial',
-  'line-break' : 20,
-  'key-val-spacing': 140
-}
 
 class Template_Dekra(Template):
     
@@ -242,7 +154,7 @@ class Template_Dekra(Template):
     
         return dict_list
     
-    def draw_client_address(self, client_address, canvas, x, y):
+    def draw_client_address(self, client_address, client_address_config, canvas, x, y):
         canvas.setFont(client_address_config['font'], client_address_config['font_size'])
         keys_sorted = [key for key in client_address.keys()]
         
@@ -353,31 +265,31 @@ class Template_Dekra(Template):
   
         # Section 1
         ## Client Address
-  
-        _, new_line = self.draw_client_address(client_address, canvas, self.start_x, new_line)
+
+        _, new_line = self.draw_client_address(utility_info['client_address'], utility_info['client_address_config'], canvas, self.start_x, new_line)
 
         #canvas.line(480,747,580,747)
   
         #Section 2
-        _, new_line = self.draw_evaluator_address(evaluator_address, evaluator_address_config, canvas, self.start_x, new_line, new_line_temp)  
+        _, new_line = self.draw_evaluator_address(utility_info['evaluator_address'], utility_info['evaluator_address_config'], canvas, self.start_x, new_line, new_line_temp)
   
         ## Section 3 test_certificate
         new_line = self.next_line(new_line, self.section_spacing)
-        canvas.setFont(test_certificate_config['font_type'], test_certificate_config['font_size'])
-        canvas.drawString(self.start_x, new_line, list(test_certificate.keys())[0])
-        new_line = self.next_line(new_line, test_certificate_config['line-break'])
-        canvas.setFont(test_certificate_config['font_type'], test_certificate_config['font_size'] - 2)
-        canvas.drawString(self.start_x, new_line, test_certificate['Prüfbescheinigung'])
+        canvas.setFont(global_keys['test_certificate_config']['font_type'], global_keys['test_certificate_config']['font_size'])
+        canvas.drawString(self.start_x, new_line, list(global_keys['test_certificate'].keys())[0])
+        new_line = self.next_line(new_line, global_keys['test_certificate_config']['line-break'])
+        canvas.setFont(global_keys['test_certificate_config']['font_type'], global_keys['test_certificate_config']['font_size'] - 2)
+        canvas.drawString(self.start_x, new_line, global_keys['test_certificate']['Prüfbescheinigung'])
   
         ## Section 4 test_certificate_results
         new_line = self.next_line(new_line, self.section_spacing)
 
         ## Section 5 
-        _, new_line = self.draw_test_certificate_results(test_certificate_results, test_certificate_results_config, canvas, self.start_x, new_line)
+        _, new_line = self.draw_test_certificate_results(global_keys['test_certificate_results'], global_keys['test_certificate_results_config'], canvas, self.start_x, new_line)
         new_line = self.next_line(new_line, self.line_break)
         
         ## Section 6
-        _, new_line = self.draw_technical_specifications(technical_specifications, technical_specifications_config, canvas, self.start_x, new_line)
+        _, new_line = self.draw_technical_specifications(global_keys['technical_specifications'], global_keys['technical_specifications_config'], canvas, self.start_x, new_line)
         #_, new_line = self.draw_test_certificate_results(test_certificate_results, test_certificate_results_config, canvas, self.start_x, new_line)
 
         canvas.save()
