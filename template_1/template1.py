@@ -15,7 +15,13 @@ from reportlab.lib.units import inch
 import numpy as np
 from reportlab.lib.pagesizes import A4
 import random
-
+import pytesseract
+from pytesseract import Output
+import cv2
+from transformers import AutoTokenizer, LayoutLMv2ForRelationExtraction
+import os
+import numpy as np
+import time
 
 pdfmetrics.registerFont(TTFont('Arial', 'arial.ttf'))
 pdfmetrics.registerFont(TTFont('Arial-Bold', 'arialbd.ttf'))
@@ -124,7 +130,7 @@ global_keys = {
 class Template_Dekra(Template):
     
     def __init__(self, start_x: int = None, start_y:int = None, token_spacing: int= None
-                 , line_spacing:int = None, key_spacing:int = None, header_spacing:int = None, section_spacing:int = None, line_break:str=None,  header:str= None, file_name:str= None, page_no:int = 1):
+                 , line_spacing:int = None, key_spacing:int = None, header_spacing:int = None, section_spacing:int = None, line_break:str=None,  header:str= None, file_name:str= None, report_name:str=None, page_no:int = 1):
         super().__init__()
         self.start_x = start_x
         self.start_x_temp = start_x
@@ -138,6 +144,9 @@ class Template_Dekra(Template):
         self.line_break = line_break
         self.header = header
         self.file_name = file_name
+        self.report_name = report_name
+        
+        self.image_name = report_name[:-4]+'.jpg'
         self.page_no = page_no
         
     
@@ -193,15 +202,9 @@ class Template_Dekra(Template):
         start_x_temp = x
         new_lines = []
         for i , (key, val) in enumerate(items_test_certificate_results):
-            print(f'start_x_temp {start_x_temp}')
-            print(f'test_certificate_results_config["vertical-left-only"] {test_certificate_results_config["vertical-left-only"]}')
             if i == 5 and key not in test_certificate_results_config['vertical-left-only']:
                 start_x_temp = start_x_temp + 2 * test_certificate_results_config['key-val-spacing']
                 y = new_lines[-4]
-            print(f'test_certificate_results_config["key-val-spacing"] {test_certificate_results_config["key-val-spacing"]}')
-            print(f'start_x_temp {start_x_temp}')
-            print(f'key {key}')
-            print("---------------------")
             canvas.setFont(test_certificate_results_config['font-type-keys'], test_certificate_results_config['font_size'])
             canvas.drawString(start_x_temp, y , key)
             #start_x_temp = start_x_temp + test_certificate_results_config['key-val-spacing']
@@ -212,8 +215,108 @@ class Template_Dekra(Template):
 
         return x, new_lines[-1]
     
-    def unify_keys_vals(self):
-        pass
+    def unify_keys_vals(self, dict_):
+        unified_dict = {}
+        for key_1 in dict_.keys():
+            if 'config' not in key_1:
+                for key_2 in dict_[key_1].keys():
+                    unified_dict[key_2] = dict_[key_1][key_2]
+        return unified_dict
+    
+    def get_ocr_data(self, conf_val:float=50, image_path:str= 'form.jpg'):
+        image = cv2.imread(image_path)
+        results = pytesseract.image_to_data(image, output_type=Output.DICT, lang='deu')
+        n_boxes = len(results['level'])
+        tokens = []
+        bboxes = []
+        
+        for i in range(n_boxes):
+            x = results["left"][i]
+            y = results["top"][i]
+            w = results["width"][i]
+            h = results["height"][i]
+    	    # extract the OCR text itself along with the confidence of the
+	        # text localization
+            text = results["text"][i]
+    
+            conf = int(results["conf"][i])
+            #(x, y, w, h) = (d['left'][i], d['top'][i], d['width'][i], d['height'][i])
+            #cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 2)
+            if conf > conf_val:
+            # display the confidence and text to our terminal
+            #tokens.append((text, [x + w, y + h]))
+                tokens.append(text)
+                bboxes.append([x,y,x+w, y+h])
+                # strip out non-ASCII text so we can draw the text on the image
+		        # using OpenCV, then draw a bounding box around the text along
+		        # with the text itself
+                text = "".join([c if ord(c) < 128 else "" for c in text]).strip()
+                cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
+                cv2.putText(image, text, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX,
+                    1.2, (0, 0, 255), 3)
+        return tokens, bboxes, image
+    
+    def add_tokens(self, tokens:list=None, token_save_path:str='tokens_temp.npy'):
+        #model = LayoutLMv2ForRelationExtraction.from_pretrained(model_path)
+        #tokenizer = AutoTokenizer.from_pretrained(tokenizer_path)
+        
+        #print(self.image_name)
+        #tokens, bboxes, _ = self.get_ocr_data(image_path=self.image_name)=
+        tokens = [token.lower() for token in tokens if token != ' ']
+        np.save(token_save_path, np.array(tokens))
+        os.system(f'python token_update.py')
+        '''print(len(tokens))
+        #print(tokens)
+        new_tokens = tokens
+
+        # check if the tokens are already in the vocabulary
+        new_tokens = set(new_tokens) - set(tokenizer.vocab.keys())
+
+        # add the tokens to the tokenizer vocabulary
+        tokenizer.add_tokens(list(new_tokens))
+        tokenizer.save_pretrained('layout_xlm_base_tokenizer_alt')
+        # add new, random embeddings for the new tokens
+        model.resize_token_embeddings(len(tokenizer))'''
+        
+        
+        
+    def label_indices(self, unified_dict:dict=None, input_ids:list=None, tokenizer:AutoTokenizer=None):
+        label_vals = {'O' : 0, 'B-QUESTION' : 1, 'B-ANSWER' : 2, 'B-HEADER' : 3, 'I-ANSWER' : 4, 'I-QUESTION' : 5, 'I-HEADER' : 6}
+        input_id_token = {tokenizer.decode(id).lower():id for id in input_ids}
+        #print(input_id_token)
+        labels = {}
+        for key, val in unified_dict.items():
+            print(str(key) +', '+ str(val))
+            key_string = ''.join(key.split(" "))
+            val_string = ''.join(val.split(" "))
+            print([token for token in tokenizer.tokenize(key.lower())])
+            print([token for token in tokenizer.tokenize(val.lower())])
+            id_list_key = [input_id_token[token] for token in tokenizer.tokenize(key.lower()) if token in key_string]
+            id_list_val = [input_id_token[token] for token in tokenizer.tokenize(val.lower()) if token in val_string]
+            for i,id in enumerate(id_list_key):
+                if i ==0:
+                    labels[id] = label_vals['B-QUESTION']
+                else:
+                    labels[id] = label_vals['I-QUESTION']
+                    
+            for i,id in enumerate(id_list_val):
+                if i ==0:
+                    labels[id] = label_vals['B-ANSWER']
+                else:
+                    labels[id] = label_vals['I-ANSWER']
+                    
+        for id in input_ids:
+            if id not in labels.keys():
+                labels[id] = label_vals['o']
+        
+        labels_list = [labels[id] for id in input_ids]
+        return labels_list
+                    
+                
+            
+                    
+            
+            
     
     def draw_technical_specifications(self, technical_specifications, technical_specifications_config, canvas, x, y):
         start_x_temp = x
@@ -293,6 +396,10 @@ class Template_Dekra(Template):
         #_, new_line = self.draw_test_certificate_results(test_certificate_results, test_certificate_results_config, canvas, self.start_x, new_line)
 
         canvas.save()
+        pages = convert_from_path('form.pdf', 500)
+        pages[0].save(f'{self.report_name[:-4]}.jpg', 'JPEG')
+        #plt.figure(figsize = (200,10))
+        #plt.imshow(cv2.imread('form.jpg')[:,:,::-1])
         
 if __name__=='__main__':
     start_x = 30
@@ -307,7 +414,7 @@ if __name__=='__main__':
     section_spacing = 30
     line_break = 20
 
-    file_name='form.pdf'
+    #file_name='form.pdf'
     header = 'Zugelassene Überwachungsstelle Aufzüge'
     file_name = '20181119-32753-1891960176-100-421500.docx'
     report_name = 'form.pdf'
@@ -323,9 +430,34 @@ if __name__=='__main__':
         line_break = line_break,
         header = header,
         file_name = file_name,
+        report_name=report_name,
         page_no = page_no)
     #draw_report(header=header, report_name='form.pdf')
 
-    template1.draw_report(header=header, report_name='form.pdf')
-    pages = convert_from_path('form.pdf', 500)
-    pages[0].save(f'form.jpg', 'JPEG')
+    #template1.draw_report(header=header, report_name='form.pdf')
+    #pages = convert_from_path('form.pdf', 500)
+    #pages[0].save(f'form.jpg', 'JPEG')
+    #model = LayoutLMv2ForRelationExtraction.from_pretrained('layout_xlm_base_model')
+    #tokenizer = AutoTokenizer.from_pretrained('layout_xlm_base_tokenizer')
+    #print(f'len(tokenizer) {len(tokenizer)}')
+    tokens, bboxes, image = template1.get_ocr_data(image_path='form.jpg')
+    np.save('bboxes_temp.npy', np.array(bboxes))
+    tokens = np.load('tokens_temp.npy')
+    bboxes = np.load('bboxes_temp.npy')
+    #print(f'len(tokens) {len(tokens)}')
+    #print(f'len(bboxes) {len(bboxes)}')
+    #plt.figure(figsize=(20,10))
+    #plt.imshow(image)
+    #template1.add_tokens(tokens = tokens)
+    #time.sleep(10)
+    tokenizer = AutoTokenizer.from_pretrained('layout_xlm_base_tokenizer_alt')
+    #print(f'len(tokenizer) {len(tokenizer)}')
+    
+    input_ids = tokenizer.encode(text = tokens, boxes = bboxes, is_pretokenized=False)  
+    #key_vals_unified = template1.unify_keys_vals(global_keys)
+    #labels = template1.label_indices(unified_dict=key_vals_unified, input_ids=input_ids, tokenizer=tokenizer)
+    #for id, label in zip(input_ids, labels):
+    #    print(f'{tokenizer.decode(id)}, {label}')
+    print(f' outside method lenght of input ids {len(input_ids)}') 
+    #for id in input_ids:
+    #    print(tokenizer.decode([id]))
