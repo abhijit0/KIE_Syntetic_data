@@ -18,11 +18,14 @@ import random
 import pytesseract
 from pytesseract import Output
 import cv2
-from transformers import AutoTokenizer, LayoutLMv2ForRelationExtraction
+from transformers import AutoTokenizer, LayoutLMv2ForRelationExtraction, AutoModel
 import os
 import numpy as np
 import time
+import copy
+import string
 
+pytesseract.pytesseract.tesseract_cmd = r'C://Program Files//Tesseract-OCR//tesseract.exe'
 pdfmetrics.registerFont(TTFont('Arial', 'arial.ttf'))
 pdfmetrics.registerFont(TTFont('Arial-Bold', 'arialbd.ttf'))
 
@@ -196,6 +199,8 @@ class Template_Dekra(Template):
         random.shuffle(items_test_certificate_results)
         return items_test_certificate_results
     
+
+    
     def draw_test_certificate_results(self, test_certificate_results, test_certificate_results_config, canvas, x, y):
         items_test_certificate_results = self.shuffle_dict(test_certificate_results)
         items_test_certificate_results = self.rearange_key_vals_test_results(items_test_certificate_results, test_certificate_results_config['vertical-left-only'], [1,6])
@@ -256,17 +261,9 @@ class Template_Dekra(Template):
                     1.2, (0, 0, 255), 3)
         return tokens, bboxes, image
     
-    def add_tokens(self, tokens:list=None, token_save_path:str='tokens_temp.npy'):
-        #model = LayoutLMv2ForRelationExtraction.from_pretrained(model_path)
-        #tokenizer = AutoTokenizer.from_pretrained(tokenizer_path)
+    def add_tokens_tokenizer(self, tokens:list=None, bboxes:list=None, tokenizer:AutoTokenizer=None, model:LayoutLMv2ForRelationExtraction=None):
         
-        #print(self.image_name)
-        #tokens, bboxes, _ = self.get_ocr_data(image_path=self.image_name)=
-        tokens = [token.lower() for token in tokens if token != ' ']
-        np.save(token_save_path, np.array(tokens))
-        os.system(f'python token_update.py')
-        '''print(len(tokens))
-        #print(tokens)
+        tokens, _ = self.preprocess_tokens(tokens=tokens, bboxes=bboxes)
         new_tokens = tokens
 
         # check if the tokens are already in the vocabulary
@@ -274,32 +271,316 @@ class Template_Dekra(Template):
 
         # add the tokens to the tokenizer vocabulary
         tokenizer.add_tokens(list(new_tokens))
-        tokenizer.save_pretrained('layout_xlm_base_tokenizer_alt')
+        
         # add new, random embeddings for the new tokens
-        model.resize_token_embeddings(len(tokenizer))'''
+        model.resize_token_embeddings(len(tokenizer))
+
+        #tokenizer.train_new_from_iterator(tokenizer.vocab, 1000)
+
+        #model_2 = copy.deepcopy(model)
+        #tokenizer_2 = copy.deepcopy(tokenizer)
+       
+        return tokenizer, model
         
+
+    def preprocess_tokens(self,tokens:list=None, bboxes:list=None):
+        speical_characters = set(string.punctuation)
+        tokens_preprocessed = []
+        bboxes_preprocessed = []
         
+        for i, token in enumerate(tokens):
+            token = token.lower()
+            if token not in speical_characters and token not in (' ',  ''):
+                for char_ in speical_characters:
+                    token = token.strip(char_)
+                tokens_preprocessed.append(token)
+                bboxes_preprocessed.append(bboxes[i])
         
-    def label_indices(self, unified_dict:dict=None, input_ids:list=None, tokenizer:AutoTokenizer=None):
+        return tokens_preprocessed, bboxes_preprocessed
+
+    def encode_tokens(self, tokens:list=None, bboxes:list = None, tokenizer : AutoTokenizer = None) :
+        input_ids = []
+        bboxes_tokenized = []
+        #tokens, bboxes = self.preprocess_tokens(tokens=tokens, bboxes=bboxes)
+        for i in range(len(tokens)):
+            tokenized_token = tokenizer.tokenize(tokens[i])
+            #print(tokenized_token)
+            #print(bboxes[i])
+            for input_id in tokenizer.encode(text=tokenized_token, boxes = [bboxes[i] for j in range(len(tokenized_token))], is_pretokenized=True, add_special_tokens=False):
+                input_ids.append(input_id)
+                bboxes_tokenized.append(bboxes[i]) 
+        return input_ids, bboxes_tokenized
+
+    def label_input_ids(self, unified_dict: dict = None, tokens:list=None, bboxes:list=None,input_ids:list = None, tokenizer:AutoTokenizer=None):
         label_vals = {'O' : 0, 'B-QUESTION' : 1, 'B-ANSWER' : 2, 'B-HEADER' : 3, 'I-ANSWER' : 4, 'I-QUESTION' : 5, 'I-HEADER' : 6}
-        input_id_token = {tokenizer.decode(id).lower():id for id in input_ids}
-        #print(input_id_token)
+        #input_ids = list(set(input_ids))
+        
+        #input_id_token = {tokenizer.decode(id):id for id in input_ids}
+        input_id_token = {id:tokenizer.decode(id) for id in input_ids}
+        #print(input_id_token) 
+        #tokenizer_2 = AutoTokenizer.from_pretrained("dbmdz/bert-base-german-cased")
+        #model_2 = AutoModel.from_pretrained("dbmdz/bert-base-german-cased")
         labels = {}
         for key, val in unified_dict.items():
-            print(str(key) +', '+ str(val))
-            key_string = ''.join(key.split(" "))
-            val_string = ''.join(val.split(" "))
-            print([token for token in tokenizer.tokenize(key.lower())])
-            print([token for token in tokenizer.tokenize(val.lower())])
-            id_list_key = [input_id_token[token] for token in tokenizer.tokenize(key.lower()) if token in key_string]
-            id_list_val = [input_id_token[token] for token in tokenizer.tokenize(val.lower()) if token in val_string]
+            #id_list_key = []
+            #id_list_val = []
+            #key = str(key).lower()
+            #val = str(val).lower()
+            #key_list = [token for token in key.split(' ')]
+            #val_list = [token for token in val.split(' ')]
+            #print([val for val in val_list if 'uni' in val])
+            #for char in string.punctuation:
+            #    key_list = [key.strip(char) for key in key_list]
+            #    val_list = [val.strip(char) for val in val_list]
+            
+            for i, token in enumerate(tokens):
+            #if 'uni' in val.lower():
+            #    print(val)
+            #key = str(key).lower()
+            #val = str(val).lower()
+            #key_list = [token for token in key.split(' ')]
+            #val_list = [token for token in val.split(' ')]
+            #print([val for val in val_list if 'uni' in val])
+            #for char in string.punctuation:
+            #    key_list = [key.strip(char) for key in key_list]
+            #    val_list = [val.strip(char) for val in val_list]
+            
+            #print([val for val in val_list if 'uni' in val])
+            #print(key_list)
+            #print(val_list)
+            #print('-----')
+            
+            #id_list_key = [input_id_token[token] for token in key_list if token in input_id_token.keys()]
+            #id_list_val = [input_id_token[token] for token in val_list if token in input_id_token.keys()]
+                
+                if token in key:
+                    tokenized_token = tokenizer.tokenize(token)
+                    #print(tokenized_token)
+                    #print(bboxes[i])
+                    id_list_key =  tokenizer.encode(text=tokenized_token, boxes = [bboxes[i] for j in range(len(tokenized_token))], is_pretokenized=True, add_special_tokens=False)
+                    #id_list_key = [input_id_token[t] for tokenized_token in tokenizer.tokenize(token) for t in tokenized_token if t in input_id_token.keys()]
+                    
+                    for i,id in enumerate(id_list_key):
+                    #token, i = element[0], element[1]
+                    #id = input_id_token[token]
+                        if i ==0:
+                            labels[id] = label_vals['B-QUESTION']
+                        else:
+                            labels[id] = label_vals['I-QUESTION']
+                elif token in str(val):
+                    tokenized_token = tokenizer.tokenize(token)
+                    #print(tokenized_token)
+                    #print(bboxes[i])
+                    id_list_val =  tokenizer.encode(text=tokenized_token, boxes = [bboxes[i] for j in range(len(tokenized_token))], is_pretokenized=True, add_special_tokens=False)
+                    for i,id in enumerate(id_list_val):
+                    #token, i = element[0], element[1]
+                    #id = input_id_token[token]
+                        if i ==0:
+                            labels[id] = label_vals['B-ANSWER']
+                        else:
+                            labels[id] = label_vals['I-ANSWER']
+
+                #else:
+                #    tokenized_token = tokenizer.tokenize(token)
+                #    #print(tokenized_token)
+                #    #print(bboxes[i])
+                #    id_list_val =  tokenizer.encode(text=tokenized_token, boxes = [bboxes[i] for j in range(len(tokenized_token))], is_pretokenized=True, add_special_tokens=False)
+                #    for id in enumerate(id_list_val):
+                #    #token, i = element[0], element[1]
+                #    #id = input_id_token[token]
+                #        labels[id] = label_vals['O']
+                        
+                
+            
+                #print(id_list_key)
+                
+                    
+        #print(len(labels))
+        for id in input_ids:
+            if id not in labels.keys():
+                labels[id] = label_vals['O']
+        #print(len(labels))
+        #print(len(input_ids))
+        labels_list = [labels[id] for id in input_ids]
+        #labels_list = [labels[input_id_token[token]] for token in tokens if token in input_id_token.keys()]
+        return labels_list
+    
+    def form_entities(self, unified_dict:dict=None, input_ids:list= None, tokenizer:AutoTokenizer=None, tokens:list = None):
+        label_vals = {'O' : 0, 'B-QUESTION' : 1, 'B-ANSWER' : 2, 'B-HEADER' : 3, 'I-ANSWER' : 4, 'I-QUESTION' : 5, 'I-HEADER' : 6}
+        label_vals_simplified = {"OTHER": 0, "QUESTION" : 1, "ANSWER" : 2}
+        #label_vals_simplified = {0: "HEADER", 1: "QUESTION", 2:"ANSWER"}
+        
+        #input_ids = list(set(input_ids))
+        input_id_token = {tokenizer.decode(id):id for id in input_ids}
+        entities = {'start':[], 'end':[], 'label':[]}
+        for key, val in unified_dict.items():
+            #if 'uni' in val.lower():
+            #    print(val)
+            key = str(key).lower()
+            val = str(val).lower()
+            key_list = [token for token in key.split(' ')]
+            val_list = [token for token in val.split(' ')]
+            #print([val for val in val_list if 'uni' in val])
+            for char in string.punctuation:
+                key_list = [key.strip(char) for key in key_list]
+                val_list = [val.strip(char) for val in val_list]
+            
+            #print([val for val in val_list if 'uni' in val])
+            #print(key_list)
+            #print(val_list)
+            #print('-----')
+            id_list_key = [input_id_token[token] for token in key_list if token in input_id_token.keys()]
+            id_list_val = [input_id_token[token] for token in val_list if token in input_id_token.keys()]
+
+            ids_others = set(input_ids)
+            ids_key_val = []
             for i,id in enumerate(id_list_key):
+                #token, i = element[0], element[1]
+                #id = input_id_token[token]
+                ids_key_val.append(id)
+                if i ==0:
+                    entities['start'].append(id)
+                elif i == len(id_list_key) - 1:
+                    entities['end'].append(id)
+                    entities['label'].append(label_vals_simplified["QUESTION"])
+                
+                    
+            for i,id in enumerate(id_list_val):
+                #token, i = element[0], element[1]
+                #id = input_id_token[token]
+                ids_key_val.append(id)
+                if i ==0:
+                    entities['start'].append(id)
+                elif i == len(id_list_key) - 1:
+                    entities['end'].append(id)
+                    entities['label'].append(label_vals_simplified["ANSWER"])
+            
+            #print(ids_others)
+            #print(set(ids_key_val))
+
+        ids_others = ids_others - set(ids_key_val)
+        #print(f'ids_others {ids_others}')
+        ids_others =  list([int(id) for id in ids_others])
+        #print(f'ids_others {ids_others}')
+        entities['start'].append(min(ids_others))
+        entities['end'].append(max(ids_others))
+        entities['label'].append(label_vals_simplified['OTHER'])
+
+        return entities
+
+    '''def encode_new_tokens(self,tokens:list=None, bboxes:list=None, tokenizer:AutoTokenizer=None):
+        #tokens, bboxes = self.preprocess_tokens(tokens, bboxes)
+        input_ids = tokenizer.encode(text = tokens, boxes = bboxes, is_pretokenized=False) 
+        return input_ids'''
+    
+    
+    '''def form_entities(self, unified_dict:dict=None, input_ids:list= None, tokenizer:AutoTokenizer=None, tokens:list = None):
+        label_vals = {'O' : 0, 'B-QUESTION' : 1, 'B-ANSWER' : 2, 'B-HEADER' : 3, 'I-ANSWER' : 4, 'I-QUESTION' : 5, 'I-HEADER' : 6}
+        label_vals_simplified = {"OTHER": 0, "QUESTION" : 1, "ANSWER" : 2}
+        #label_vals_simplified = {0: "HEADER", 1: "QUESTION", 2:"ANSWER"}
+        
+        input_ids = list(set(input_ids))
+        input_id_token = {tokenizer.decode(id):id for id in input_ids}
+        entities = {'start':[], 'end':[], 'label':[]}
+        for key, val in unified_dict.items():
+            #if 'uni' in val.lower():
+            #    print(val)
+            key = str(key).lower()
+            val = str(val).lower()
+            key_list = [token for token in key.split(' ')]
+            val_list = [token for token in val.split(' ')]
+            #print([val for val in val_list if 'uni' in val])
+            for char in string.punctuation:
+                key_list = [key.strip(char) for key in key_list]
+                val_list = [val.strip(char) for val in val_list]
+            
+            #print([val for val in val_list if 'uni' in val])
+            #print(key_list)
+            #print(val_list)
+            #print('-----')
+            id_list_key = [input_id_token[token] for token in key_list if token in input_id_token.keys()]
+            id_list_val = [input_id_token[token] for token in val_list if token in input_id_token.keys()]
+
+            ids_others = set(input_ids)
+            ids_key_val = []
+            for i,id in enumerate(id_list_key):
+                #token, i = element[0], element[1]
+                #id = input_id_token[token]
+                ids_key_val.append(id)
+                if i ==0:
+                    entities['start'].append(id)
+                elif i == len(id_list_key) - 1:
+                    entities['end'].append(id)
+                    entities['label'].append(label_vals_simplified["QUESTION"])
+                
+                    
+            for i,id in enumerate(id_list_val):
+                #token, i = element[0], element[1]
+                #id = input_id_token[token]
+                ids_key_val.append(id)
+                if i ==0:
+                    entities['start'].append(id)
+                elif i == len(id_list_key) - 1:
+                    entities['end'].append(id)
+                    entities['label'].append(label_vals_simplified["ANSWER"])
+            
+            #print(ids_others)
+            #print(set(ids_key_val))
+
+        ids_others = ids_others - set(ids_key_val)
+        #print(f'ids_others {ids_others}')
+        ids_others =  list([int(id) for id in ids_others])
+        #print(f'ids_others {ids_others}')
+        entities['start'].append(min(ids_others))
+        entities['end'].append(max(ids_others))
+        entities['label'].append(label_vals_simplified['OTHER'])
+
+        return entities'''
+            
+
+    '''def label_indices(self, unified_dict:dict=None, input_ids:list=None, tokenizer:AutoTokenizer=None, tokens :list=None ):
+        label_vals = {'O' : 0, 'B-QUESTION' : 1, 'B-ANSWER' : 2, 'B-HEADER' : 3, 'I-ANSWER' : 4, 'I-QUESTION' : 5, 'I-HEADER' : 6}
+        input_ids = list(set(input_ids))
+        input_id_token = {tokenizer.decode(id):id for id in input_ids}
+        #input_id_token = {id:tokenizer.decode(id) for id in input_ids}
+        #print(input_id_token)
+        #tokenizer_2 = AutoTokenizer.from_pretrained("dbmdz/bert-base-german-cased")
+        #model_2 = AutoModel.from_pretrained("dbmdz/bert-base-german-cased")
+        labels = {}
+        for key, val in unified_dict.items():
+            #if 'uni' in val.lower():
+            #    print(val)
+            key = str(key).lower()
+            val = str(val).lower()
+            key_list = [token for token in key.split(' ')]
+            val_list = [token for token in val.split(' ')]
+            #print([val for val in val_list if 'uni' in val])
+            for char in string.punctuation:
+                key_list = [key.strip(char) for key in key_list]
+                val_list = [val.strip(char) for val in val_list]
+            
+            #print([val for val in val_list if 'uni' in val])
+            #print(key_list)
+            #print(val_list)
+            #print('-----')
+            id_list_key = [input_id_token[token] for token in key_list if token in input_id_token.keys()]
+            id_list_val = [input_id_token[token] for token in val_list if token in input_id_token.keys()]
+            #id_list_key = [(token, key.index(token)) for token in input_id_token.keys() if token in key]
+            #id_list_val = [(token, key.index(token)) for token in input_id_token.keys() if token in val]
+            
+            
+            #print(id_list_key)
+            for i,id in enumerate(id_list_key):
+                #token, i = element[0], element[1]
+                #id = input_id_token[token]
                 if i ==0:
                     labels[id] = label_vals['B-QUESTION']
                 else:
                     labels[id] = label_vals['I-QUESTION']
                     
             for i,id in enumerate(id_list_val):
+                #token, i = element[0], element[1]
+                #id = input_id_token[token]
                 if i ==0:
                     labels[id] = label_vals['B-ANSWER']
                 else:
@@ -307,10 +588,11 @@ class Template_Dekra(Template):
                     
         for id in input_ids:
             if id not in labels.keys():
-                labels[id] = label_vals['o']
+                labels[id] = label_vals['O']
         
-        labels_list = [labels[id] for id in input_ids]
-        return labels_list
+        #labels_list = [labels[id] for id in input_ids]
+        labels_list = [labels[input_id_token[token]] for token in tokens if token in input_id_token.keys()]
+        return labels_list'''
                     
                 
             
@@ -396,8 +678,8 @@ class Template_Dekra(Template):
         #_, new_line = self.draw_test_certificate_results(test_certificate_results, test_certificate_results_config, canvas, self.start_x, new_line)
 
         canvas.save()
-        pages = convert_from_path('form.pdf', 500)
-        pages[0].save(f'{self.report_name[:-4]}.jpg', 'JPEG')
+        pages = convert_from_path(report_name, 500)
+        pages[0].save(f'{report_name[:-4]}.jpg', 'JPEG')
         #plt.figure(figsize = (200,10))
         #plt.imshow(cv2.imread('form.jpg')[:,:,::-1])
         
@@ -437,27 +719,45 @@ if __name__=='__main__':
     #template1.draw_report(header=header, report_name='form.pdf')
     #pages = convert_from_path('form.pdf', 500)
     #pages[0].save(f'form.jpg', 'JPEG')
-    #model = LayoutLMv2ForRelationExtraction.from_pretrained('layout_xlm_base_model')
-    #tokenizer = AutoTokenizer.from_pretrained('layout_xlm_base_tokenizer')
+    model = LayoutLMv2ForRelationExtraction.from_pretrained("microsoft/layoutxlm-base")
+    tokenizer = AutoTokenizer.from_pretrained("microsoft/layoutxlm-base")
     #print(f'len(tokenizer) {len(tokenizer)}')
     tokens, bboxes, image = template1.get_ocr_data(image_path='form.jpg')
-    np.save('bboxes_temp.npy', np.array(bboxes))
-    tokens = np.load('tokens_temp.npy')
-    bboxes = np.load('bboxes_temp.npy')
+    #print([token for token in tokens if token in set(string.punctuation) and token in (' ', '')])
+    #print('------------------------')
+    #template1.add_tokens(tokens=tokens)
+    #tokens = [token.lower() for token in tokens if token != ' ']
+    #tokens, bboxes = template1.preprocess_tokens(tokens=tokens, bboxes=bboxes)
+
+    #tokens = np.load('tokens_temp.npy')
+    #bboxes = np.load('bboxes_temp.npy')
     #print(f'len(tokens) {len(tokens)}')
     #print(f'len(bboxes) {len(bboxes)}')
     #plt.figure(figsize=(20,10))
     #plt.imshow(image)
-    #template1.add_tokens(tokens = tokens)
+    #tokenizer, model = template1.add_tokens_tokenizer(tokens = tokens, tokenizer = tokenizer, model = model)
+    input_ids, bboxes = template1.encode_tokens(tokens=tokens, bboxes=bboxes, tokenizer=tokenizer)
+    #tokens, bboxes = template1.preprocess_tokens(tokens= tokens, bboxes= bboxes)
+    #print(tokens)
+    #print(f'len of tokens {len(tokens)}')
     #time.sleep(10)
-    tokenizer = AutoTokenizer.from_pretrained('layout_xlm_base_tokenizer_alt')
+
+    #print(input_ids)
+    #tokenizer = AutoTokenizer.from_pretrained('layout_xlm_base_tokenizer')
+    #tokenizer = AutoTokenizer.from_pretrained('layout_xlm_base_tokenizer_alt')
     #print(f'len(tokenizer) {len(tokenizer)}')
     
-    input_ids = tokenizer.encode(text = tokens, boxes = bboxes, is_pretokenized=False)  
-    #key_vals_unified = template1.unify_keys_vals(global_keys)
-    #labels = template1.label_indices(unified_dict=key_vals_unified, input_ids=input_ids, tokenizer=tokenizer)
+    #input_ids = tokenizer.encode(text = tokens, boxes = bboxes, is_pretokenized=False)  
+    key_vals_unified = template1.unify_keys_vals(global_keys)
+    labels = template1.label_input_ids(unified_dict=key_vals_unified,tokens = tokens,  bboxes = bboxes, input_ids=input_ids, tokenizer=tokenizer)
+    print(len(input_ids))
+    print(len(labels))
     #for id, label in zip(input_ids, labels):
     #    print(f'{tokenizer.decode(id)}, {label}')
-    print(f' outside method lenght of input ids {len(input_ids)}') 
+    
+    #print(tokenizer.tokenize('Prüfbescheinigung, Wiederkehrende Prüfung (Hauptprüfung)'.lower()))
+    #for id in input_ids:
+    #    print(f'{tokenizer.decode(id)}')
+    #print(f' outside method lenght of input ids {len(input_ids)}') 
     #for id in input_ids:
     #    print(tokenizer.decode([id]))
