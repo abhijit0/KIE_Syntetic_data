@@ -225,7 +225,11 @@ class Template_Dekra(Template):
         for key_1 in dict_.keys():
             if 'config' not in key_1:
                 for key_2 in dict_[key_1].keys():
-                    unified_dict[key_2] = dict_[key_1][key_2]
+                    element = dict_[key_1][key_2]
+                    element = str(element)
+                    #key_1 = str(key_1).lower()
+                    key_2 = str(key_2).lower()
+                    unified_dict[key_2] = element.lower()
         return unified_dict
     
     def get_ocr_data(self, conf_val:float=50, image_path:str= 'form.jpg'):
@@ -263,7 +267,7 @@ class Template_Dekra(Template):
     
     def add_tokens_tokenizer(self, tokens:list=None, bboxes:list=None, tokenizer:AutoTokenizer=None, model:LayoutLMv2ForRelationExtraction=None):
         
-        tokens, _ = self.preprocess_tokens(tokens=tokens, bboxes=bboxes)
+        #tokens, _ = self.preprocess_tokens(tokens=tokens, bboxes=bboxes)
         new_tokens = tokens
 
         # check if the tokens are already in the vocabulary
@@ -290,9 +294,9 @@ class Template_Dekra(Template):
         
         for i, token in enumerate(tokens):
             token = token.lower()
-            if token not in speical_characters and token not in (' ',  ''):
-                for char_ in speical_characters:
-                    token = token.strip(char_)
+            for char_ in speical_characters:
+                token = token.strip(char_)
+            if token not in speical_characters and token not in (' ',  '', '\t','\n') and len(token) > 1:
                 tokens_preprocessed.append(token)
                 bboxes_preprocessed.append(bboxes[i])
         
@@ -301,170 +305,380 @@ class Template_Dekra(Template):
     def encode_tokens(self, tokens:list=None, bboxes:list = None, tokenizer : AutoTokenizer = None) :
         input_ids = []
         bboxes_tokenized = []
+        input_id_map ={}
+        input_id_index_map = {}
         #tokens, bboxes = self.preprocess_tokens(tokens=tokens, bboxes=bboxes)
         for i in range(len(tokens)):
-            tokenized_token = tokenizer.tokenize(tokens[i])
+            tokenized_tokens = tokenizer.tokenize(tokens[i])
             #print(tokenized_token)
             #print(bboxes[i])
-            for input_id in tokenizer.encode(text=tokenized_token, boxes = [bboxes[i] for j in range(len(tokenized_token))], is_pretokenized=True, add_special_tokens=False):
-                input_ids.append(input_id)
-                bboxes_tokenized.append(bboxes[i]) 
-        return input_ids, bboxes_tokenized
-
-    def label_input_ids(self, unified_dict: dict = None, tokens:list=None, bboxes:list=None,input_ids:list = None, tokenizer:AutoTokenizer=None):
+            input_ids_local = tokenizer.encode(text=tokenized_tokens, boxes = [bboxes[i] for j in range(len(tokenized_tokens))], is_pretokenized=True, add_special_tokens=False)
+            for tokenized_token, input_id in zip(tokenized_tokens, input_ids_local):
+                if tokenized_token not in set(str(string.punctuation)) and tokenized_token not in ('', ' ', '\t', '\n'):
+                    input_ids.append(input_id)
+                    input_id_map[tokenized_token] = input_id
+                    bboxes_tokenized.append(bboxes[i]) 
+        return input_ids, bboxes_tokenized, input_id_map
+    
+    def label_input_ids(self, unified_dict: dict = None, tokens:list=None, bboxes:list=None, input_ids:list = None, input_id_map:dict = None, tokenizer:AutoTokenizer=None):
         label_vals = {'O' : 0, 'B-QUESTION' : 1, 'B-ANSWER' : 2, 'B-HEADER' : 3, 'I-ANSWER' : 4, 'I-QUESTION' : 5, 'I-HEADER' : 6}
-        #input_ids = list(set(input_ids))
         
-        #input_id_token = {tokenizer.decode(id):id for id in input_ids}
-        input_id_token = {id:tokenizer.decode(id) for id in input_ids}
-        #print(input_id_token) 
-        #tokenizer_2 = AutoTokenizer.from_pretrained("dbmdz/bert-base-german-cased")
-        #model_2 = AutoModel.from_pretrained("dbmdz/bert-base-german-cased")
         labels = {}
+  
         for key, val in unified_dict.items():
-            #id_list_key = []
-            #id_list_val = []
-            #key = str(key).lower()
-            #val = str(val).lower()
-            #key_list = [token for token in key.split(' ')]
-            #val_list = [token for token in val.split(' ')]
-            #print([val for val in val_list if 'uni' in val])
-            #for char in string.punctuation:
-            #    key_list = [key.strip(char) for key in key_list]
-            #    val_list = [val.strip(char) for val in val_list]
             
-            for i, token in enumerate(tokens):
-            #if 'uni' in val.lower():
-            #    print(val)
-            #key = str(key).lower()
-            #val = str(val).lower()
-            #key_list = [token for token in key.split(' ')]
-            #val_list = [token for token in val.split(' ')]
-            #print([val for val in val_list if 'uni' in val])
-            #for char in string.punctuation:
-            #    key_list = [key.strip(char) for key in key_list]
-            #    val_list = [val.strip(char) for val in val_list]
-            
-            #print([val for val in val_list if 'uni' in val])
-            #print(key_list)
-            #print(val_list)
-            #print('-----')
-            
-            #id_list_key = [input_id_token[token] for token in key_list if token in input_id_token.keys()]
-            #id_list_val = [input_id_token[token] for token in val_list if token in input_id_token.keys()]
+            for i, token in enumerate(tokens):  
                 
                 if token in key:
                     tokenized_token = tokenizer.tokenize(token)
-                    #print(tokenized_token)
-                    #print(bboxes[i])
-                    id_list_key =  tokenizer.encode(text=tokenized_token, boxes = [bboxes[i] for j in range(len(tokenized_token))], is_pretokenized=True, add_special_tokens=False)
-                    #id_list_key = [input_id_token[t] for tokenized_token in tokenizer.tokenize(token) for t in tokenized_token if t in input_id_token.keys()]
-                    
-                    for i,id in enumerate(id_list_key):
-                    #token, i = element[0], element[1]
-                    #id = input_id_token[token]
-                        if i ==0:
+                    #id_list_key =  tokenizer.encode(text=tokenized_token, boxes = [bboxes[i] for j in range(len(tokenized_token))], is_pretokenized=True, add_special_tokens=False)
+                    id_list_key = [input_id_map[t] for t in tokenized_token]
+                    for j,id in enumerate(id_list_key):
+                        
+                        if j ==0:
                             labels[id] = label_vals['B-QUESTION']
+                            
+                        if j>0:
+                            labels[id] = label_vals['I-QUESTION']
+                               
+                        #elif j== len(id_list_key) -1:
+                        #    labels[id] = label_vals['I-QUESTION']
+                            
+                        #else:
+                        #    labels[id] = label_vals['I-QUESTION']
+                elif token in str(val):
+                    tokenized_token = tokenizer.tokenize(token)
+                    #id_list_val =  tokenizer.encode(text=tokenized_token, boxes = [bboxes[i] for j in range(len(tokenized_token))], is_pretokenized=True, add_special_tokens=False)
+                    id_list_val = [input_id_map[t] for t in tokenized_token]
+                    for j,id in enumerate(id_list_val):
+                        if j ==0:
+                            labels[id] = label_vals['B-ANSWER']
+                            
+                            #entities['start'].append(id)
+                        if j>0:
+                            labels[id] = label_vals['I-ANSWER']
+                                
+                        #elif j== len(id_list_key) -1:
+                        #    labels[id] = label_vals['I-ANSWER']
+                            
+                        #else:
+                        #   labels[id] = label_vals['I-ANSWER']
+
+                
+        for id in input_ids:
+            if id not in labels.keys():
+                labels[id] = label_vals['O']
+        labels_list = [labels[id] for id in input_ids]
+        return labels_list
+
+    '''def label_input_ids(self, unified_dict: dict = None, tokens:list=None, bboxes:list=None,input_ids:list = None, tokenizer:AutoTokenizer=None):
+        label_vals = {'O' : 0, 'B-QUESTION' : 1, 'B-ANSWER' : 2, 'B-HEADER' : 3, 'I-ANSWER' : 4, 'I-QUESTION' : 5, 'I-HEADER' : 6}
+        labels = {}
+        for key, val in unified_dict.items():
+            
+            for i, token in enumerate(tokens):  
+                
+                if token in key:
+                    tokenized_token = tokenizer.tokenize(token)
+                    id_list_key =  tokenizer.encode(text=tokenized_token, boxes = [bboxes[i] for j in range(len(tokenized_token))], is_pretokenized=True, add_special_tokens=False)
+                    
+                    for j,id in enumerate(id_list_key):
+                        
+                        if j ==0:
+                            labels[id] = label_vals['B-QUESTION']
+                            
+                        elif j== len(id_list_key) -1:
+                            labels[id] = label_vals['I-QUESTION']
+                            
                         else:
                             labels[id] = label_vals['I-QUESTION']
                 elif token in str(val):
                     tokenized_token = tokenizer.tokenize(token)
-                    #print(tokenized_token)
-                    #print(bboxes[i])
                     id_list_val =  tokenizer.encode(text=tokenized_token, boxes = [bboxes[i] for j in range(len(tokenized_token))], is_pretokenized=True, add_special_tokens=False)
-                    for i,id in enumerate(id_list_val):
-                    #token, i = element[0], element[1]
-                    #id = input_id_token[token]
-                        if i ==0:
+                    
+                    for j,id in enumerate(id_list_val):
+                        if j ==0:
                             labels[id] = label_vals['B-ANSWER']
+                            #entities['start'].append(id)
+                        elif j== len(id_list_key) -1:
+                            labels[id] = label_vals['I-ANSWER']
+                            
                         else:
                             labels[id] = label_vals['I-ANSWER']
 
-                #else:
-                #    tokenized_token = tokenizer.tokenize(token)
-                #    #print(tokenized_token)
-                #    #print(bboxes[i])
-                #    id_list_val =  tokenizer.encode(text=tokenized_token, boxes = [bboxes[i] for j in range(len(tokenized_token))], is_pretokenized=True, add_special_tokens=False)
-                #    for id in enumerate(id_list_val):
-                #    #token, i = element[0], element[1]
-                #    #id = input_id_token[token]
-                #        labels[id] = label_vals['O']
-                        
                 
-            
-                #print(id_list_key)
-                
-                    
-        #print(len(labels))
         for id in input_ids:
             if id not in labels.keys():
                 labels[id] = label_vals['O']
-        #print(len(labels))
-        #print(len(input_ids))
         labels_list = [labels[id] for id in input_ids]
-        #labels_list = [labels[input_id_token[token]] for token in tokens if token in input_id_token.keys()]
-        return labels_list
+        return labels_list'''
     
-    def form_entities(self, unified_dict:dict=None, input_ids:list= None, tokenizer:AutoTokenizer=None, tokens:list = None):
+    @staticmethod
+    def countPairs(s1, n1, s2, n2) :
+ 
+        # To store the frequencies of characters
+        # of string s1 and s2
+        freq1 = [0] * 26
+        freq2 = [0] * 26
+ 
+        # To store the count of valid pairs
+        count = 0
+ 
+        # Update the frequencies of
+        # the characters of string s1
+        for i in range(n1) :
+            freq1[ord(s1[i]) - ord('a')] += 1
+ 
+        # Update the frequencies of
+        # the characters of string s2
+        for i in range(n2) :
+            freq2[ord(s2[i]) - ord('a')] += 1
+ 
+        # Find the count of valid pairs
+        for i in range(26) :
+            count += min(freq1[i], freq2[i])
+    
+        return count
+    
+    '''def count_common_chars(self, str1, str2):
+        str1_set = set([i for i in str1])
+        str2_set = set([i for i in str2])
+
+        common_elements = len(list(str1_set & str2_set))
+        return common_elements'''
+    
+    def count_common_chars(self, str1, str2):
+        count = 0
+        str1 = str(str1)
+        str2 = str(str2)
+        for i in str1:
+            for j in str2:
+                if i==j:
+                    count+=1
+
+        return count
+    
+    def check_token_presence_within_list(self, token:str=None, token_list:str=None):
+        flag = False
+        for i in token_list:
+            if token in i:
+                flag = True
+                return flag
+        return flag
+
+    '''def rearrange_token_order(self, token_list:list=None, token_indices:list=None):
+        #token_list_rearranged = []
+        #print(token_list)
+        for token1 in token_list:
+            for token2 in token_list:
+                if token1 != token2:
+                    if token_indices[token1] < token_indices[token2]:
+                        token_list[token_list.index(token1)], token_list[token_list.index(token2)] = token_list[token_list.index(token2)], token_list[token_list.index(token1)]
+        #print(token_list)
+        #print('-----')
+        return token_list'''
+
+    def rearrange_token_order(self, token_list :list =None, token_key_str:str=None, token_indices:list=None):
+        #token_list_rearranged = []
+        #print(token_list)
+        indices = {}
+        for token in token_list:
+            indices[token_key_str.index(token)]= token
+        #print(indices)
+        sorted_indices = sorted([key for key in indices.keys()])
+        token_indices = {indices[key]:i for i,key in enumerate(sorted_indices)}
+        
+        for token1 in token_list:
+            for token2 in token_list:
+                if token1 != token2:
+                    if token_indices[token1] < token_indices[token2]:
+                        token_list[token_list.index(token1)], token_list[token_list.index(token2)] = token_list[token_list.index(token2)], token_list[token_list.index(token1)]
+        #print(token_list)
+        #print('-----')
+        return token_list
+         
+            
+    def post_process_token_groups(self, key_set:dict=None):
+        for key in key_set.keys():
+            token_list = key_set[key]
+            #print(key)
+            token_dict_indices = {token:i for i, token in enumerate(token_list)}
+            #print(f'token_list {token_list}')
+            token_list_sorted = sorted(token_list, key=len, reverse=True)
+            #print(token_list_sorted)
+            tokens_to_keep=[]
+            for token in token_list_sorted:
+                if not self.check_token_presence_within_list(token=token, token_list=tokens_to_keep):
+                    tokens_to_keep.append(token)
+            #print(f'tokens_to_keep {tokens_to_keep}')
+            tokens_rearranged = self.rearrange_token_order(token_key_str= key, token_list=tokens_to_keep, token_indices = token_dict_indices)
+            #print(tokens_rearranged)
+            #print('----')
+            key_set[key] = tokens_rearranged
+        return key_set
+            
+                
+    def form_token_groups(self, unified_dict:dict=None, tokens:list=None, bboxes:list = None):
+        key_set = {key:[] for key in unified_dict.keys()}
+        val_set = {unified_dict[key]:[] for key in unified_dict.keys()}
+        #print(val_set)
+        #tokens = [token for token in tokens if token not in (' ', '')]
+        token_map = {token:[] for token in tokens}
+        other_map = {}
+        
+        for key in key_set.keys():
+            for token in tokens:
+                token = str(token)
+                #key_list = key.split(" ")
+                if token in key:        
+                    if token not in key_set[key]:
+                        key_set[key].append(token)
+                        token_map[token].append('key')
+
+
+        for val in val_set.keys():
+            for token in tokens:
+                token = str(token)
+                if token in str(val):
+                    if token not in val_set[val]:
+                        val_set[val].append(token)
+                        token_map[token].append('val')
+
+        key_set = self.post_process_token_groups(key_set=key_set)
+        val_set = self.post_process_token_groups(key_set=val_set)
+
+
+        for token_key in token_map.keys():
+            token_key = str(token_key)
+            if len(token_map[token_key]) == 0:
+                #other_map[token_key]
+                token_map[token_key].append('other')
+
+        return key_set, val_set, token_map
+
+        
+    '''def form_token_groups(self, unified_dict:dict=None, tokens:list=None, bboxes:list = None):
+        key_set = {key:[] for key in unified_dict.keys()}
+        val_set = {unified_dict[key]:[] for key in unified_dict.keys()}
+        #print(val_set)
+        #tokens = [token for token in tokens if token not in (' ', '')]
+        token_map = {token:[] for token in tokens}
+        other_map = {}
+        
+        for key in key_set.keys():
+            for token in tokens:
+                token = str(token)
+                if token in key:
+                    if token not in key_set[key]:
+                        key_set[key].append(token)
+                        token_map[token].append('key')
+
+        for val in val_set.keys():
+            for token in tokens:
+                token = str(token)
+                if token in str(val):
+                    if token not in val_set[val]:
+                        val_set[val].append(token)
+                        token_map[token].append('val')
+
+        key_set = self.post_process_token_groups(key_set=key_set)
+        val_set = self.post_process_token_groups(key_set=val_set)
+
+
+        for token_key in token_map.keys():
+            token_key = str(token_key)
+            if len(token_map[token_key]) == 0:
+                #other_map[token_key]
+                token_map[token_key].append('other')
+
+        return key_set, val_set, token_map'''
+        
+
+
+
+    ## Need to store the indices of input ids start and end not the ids themselves
+    def form_entities(self, unified_dict:dict=None, input_ids:list= None, input_id_map:dict = None, tokenizer:AutoTokenizer=None, tokens:list = None, bboxes:list = None):
         label_vals = {'O' : 0, 'B-QUESTION' : 1, 'B-ANSWER' : 2, 'B-HEADER' : 3, 'I-ANSWER' : 4, 'I-QUESTION' : 5, 'I-HEADER' : 6}
         label_vals_simplified = {"OTHER": 0, "QUESTION" : 1, "ANSWER" : 2}
         #label_vals_simplified = {0: "HEADER", 1: "QUESTION", 2:"ANSWER"}
         
         #input_ids = list(set(input_ids))
-        input_id_token = {tokenizer.decode(id):id for id in input_ids}
+        #input_id_token = {tokenizer.decode(id):id for id in input_ids}
         entities = {'start':[], 'end':[], 'label':[]}
-        for key, val in unified_dict.items():
-            #if 'uni' in val.lower():
-            #    print(val)
-            key = str(key).lower()
-            val = str(val).lower()
-            key_list = [token for token in key.split(' ')]
-            val_list = [token for token in val.split(' ')]
-            #print([val for val in val_list if 'uni' in val])
-            for char in string.punctuation:
-                key_list = [key.strip(char) for key in key_list]
-                val_list = [val.strip(char) for val in val_list]
+        token_group_key, token_group_val, token_group = self.form_token_groups(unified_dict=unified_dict, tokens=tokens, bboxes=bboxes)
+        for i, (key, tokens) in enumerate(token_group_key.items()):
+            if len(tokens)>0:
+                token_first = tokens[0]
+                token_last = tokens[-1]
+                token_first_tokenized = tokenizer.tokenize(token_first)
+                token_last_tokenized = tokenizer.tokenize(token_last)
+                #print(set(str(string.punctuation)))
+                token_first_tokenized = [token for token in token_first_tokenized if token not in (' ', '', '\t', '\n','▁') and token not in set(str(string.punctuation))]
+                token_last_tokenized = [token for token in token_last_tokenized if token not in (' ', '', '\t', '\n','▁') and token not in set(str(string.punctuation))]
+                #token_first_tokenized = [token for token in token_first_tokenized if token != '▁'] # '▁' is different from '_'
+                #token_last_tokenized = [token for token in token_last_tokenized if token != '▁']
+                
+                id_list_key_first_token = [input_id_map[t] for t in token_first_tokenized]
+                id_list_key_last_token = [input_id_map[t] for t in token_last_tokenized]
+                #print(id_list_key_first_token)
+                #ids_present = [id for id in id_list_val if id in input_ids]
+                #print(f'ids_present {ids_present}')
+                #if len(ids_present) >0:
+                entities['start'].append(input_ids.index(id_list_key_first_token[0]))
+                entities['end'].append(input_ids.index(id_list_key_last_token[-1]) + 1)
+                entities['label'].append(label_vals_simplified['QUESTION'])    
             
-            #print([val for val in val_list if 'uni' in val])
-            #print(key_list)
-            #print(val_list)
-            #print('-----')
-            id_list_key = [input_id_token[token] for token in key_list if token in input_id_token.keys()]
-            id_list_val = [input_id_token[token] for token in val_list if token in input_id_token.keys()]
+        for i, (key, tokens) in enumerate(token_group_val.items()):
+            if len(tokens) >0:
+                token_first = tokens[0]
+                token_last = tokens[-1]
+                token_first_tokenized = tokenizer.tokenize(token_first)
+                token_last_tokenized = tokenizer.tokenize(token_last)
 
-            ids_others = set(input_ids)
-            ids_key_val = []
-            for i,id in enumerate(id_list_key):
-                #token, i = element[0], element[1]
-                #id = input_id_token[token]
-                ids_key_val.append(id)
-                if i ==0:
-                    entities['start'].append(id)
-                elif i == len(id_list_key) - 1:
-                    entities['end'].append(id)
-                    entities['label'].append(label_vals_simplified["QUESTION"])
+                id_list_key_first_token = [input_id_map[str(t).strip()] for t in token_first_tokenized]
+                id_list_key_last_token = [input_id_map[str(t).strip()] for t in token_last_tokenized]
+                token_first_tokenized = [token for token in token_first_tokenized if token not in (' ', '', '\t', '\n','▁') and token not in set(str(string.punctuation))]
+                token_last_tokenized = [token for token in token_last_tokenized if token not in (' ', '', '\t', '\n','▁') and token not in set(str(string.punctuation))]
+                
+                print(i)
+                print(f'tokens {tokens}')
+                print(f'token_first {token_first}')
+                print(f'token_last {token_last}')
+                print(f'token_first_tokenized {token_first_tokenized}')
+                print(f'token_last_tokenized {token_last_tokenized}')
+                print(f'token_first_tokenized {id_list_key_first_token}')
+                print(f'token_last_tokenized {id_list_key_last_token}')
+                print(f'tokenizer.decode(input_ids.index(id_list_key_last_token[-1]) + 1) {tokenizer.decode(input_ids.index(id_list_key_last_token[-1]) + 1)}')
+                
+                #ids_present = [id for id in id_list_val if id in input_ids]
+                #print(f'ids_present {ids_present}')
+                #if len(ids_present) >0:
+                entities['start'].append(input_ids.index(id_list_key_first_token[-1]))
+                #print('decoding first and last index')
+                print(f'start {input_ids.index(id_list_key_first_token[0])} {tokenizer.decode(input_ids[input_ids.index(id_list_key_first_token[0])])}')
+                entities['end'].append(input_ids.index(id_list_key_last_token[-1]) + 1)
+                #print(f'end {input_ids.index(id_list_key_last_token[-1]) + 1} {tokenizer.decode(input_ids[input_ids.index(id_list_key_last_token[-1]) + 1])}')
+                #print(f'start : end {input_ids[input_ids.index(id_list_key_first_token[0])]} : {input_ids.index(id_list_key_last_token[-1]) + 1} \
+                 #     {tokenizer.decode(input_ids[input_ids.index(id_list_key_first_token[0]):input_ids.index(id_list_key_last_token[-1]) + 1])}')
+                print('----------------')
+                entities['label'].append(label_vals_simplified['ANSWER'])
+        
+        for key, tokens in token_group.items():
+            if len(tokens)>0 and 'other' in tokens:
+                token = key
+                token_tokenized = tokenizer.tokenize(token)
+                token_first_tokenized = [token for token in token_tokenized if token not in (' ', '', '\t', '\n','▁') and token not in string.punctuation]
                 
                     
-            for i,id in enumerate(id_list_val):
-                #token, i = element[0], element[1]
-                #id = input_id_token[token]
-                ids_key_val.append(id)
-                if i ==0:
-                    entities['start'].append(id)
-                elif i == len(id_list_key) - 1:
-                    entities['end'].append(id)
-                    entities['label'].append(label_vals_simplified["ANSWER"])
-            
-            #print(ids_others)
-            #print(set(ids_key_val))
+                id_list_key = [input_id_map[t] for t in token_tokenized]
+                #if len(ids_present) >0:
+                entities['start'].append(input_ids.index(id_list_key[0]))
+                entities['end'].append(input_ids.index(id_list_key[-1]) + 1)
+                entities['label'].append(label_vals_simplified['OTHER'])
+                
 
-        ids_others = ids_others - set(ids_key_val)
-        #print(f'ids_others {ids_others}')
-        ids_others =  list([int(id) for id in ids_others])
-        #print(f'ids_others {ids_others}')
-        entities['start'].append(min(ids_others))
-        entities['end'].append(max(ids_others))
-        entities['label'].append(label_vals_simplified['OTHER'])
+
+        
 
         return entities
 
@@ -719,15 +933,19 @@ if __name__=='__main__':
     #template1.draw_report(header=header, report_name='form.pdf')
     #pages = convert_from_path('form.pdf', 500)
     #pages[0].save(f'form.jpg', 'JPEG')
+    #template1.draw_report(header=header, report_name='form2.pdf')
+    #pages = convert_from_path('form.pdf', 500)
+    #pages[0].save(f'form.jpg', 'JPEG')
     model = LayoutLMv2ForRelationExtraction.from_pretrained("microsoft/layoutxlm-base")
     tokenizer = AutoTokenizer.from_pretrained("microsoft/layoutxlm-base")
     #print(f'len(tokenizer) {len(tokenizer)}')
-    tokens, bboxes, image = template1.get_ocr_data(image_path='form.jpg')
+    tokens, bboxes, image = template1.get_ocr_data(image_path='form2.jpg')
+
     #print([token for token in tokens if token in set(string.punctuation) and token in (' ', '')])
     #print('------------------------')
     #template1.add_tokens(tokens=tokens)
     #tokens = [token.lower() for token in tokens if token != ' ']
-    #tokens, bboxes = template1.preprocess_tokens(tokens=tokens, bboxes=bboxes)
+    tokens, bboxes = template1.preprocess_tokens(tokens=tokens, bboxes=bboxes)
 
     #tokens = np.load('tokens_temp.npy')
     #bboxes = np.load('bboxes_temp.npy')
@@ -735,8 +953,8 @@ if __name__=='__main__':
     #print(f'len(bboxes) {len(bboxes)}')
     #plt.figure(figsize=(20,10))
     #plt.imshow(image)
-    #tokenizer, model = template1.add_tokens_tokenizer(tokens = tokens, tokenizer = tokenizer, model = model)
-    input_ids, bboxes = template1.encode_tokens(tokens=tokens, bboxes=bboxes, tokenizer=tokenizer)
+    tokenizer, model = template1.add_tokens_tokenizer(tokens = tokens, tokenizer = tokenizer, model = model)
+    input_ids, bboxes, input_id_map = template1.encode_tokens(tokens=tokens, bboxes=bboxes, tokenizer=tokenizer)
     #tokens, bboxes = template1.preprocess_tokens(tokens= tokens, bboxes= bboxes)
     #print(tokens)
     #print(f'len of tokens {len(tokens)}')
@@ -749,7 +967,10 @@ if __name__=='__main__':
     
     #input_ids = tokenizer.encode(text = tokens, boxes = bboxes, is_pretokenized=False)  
     key_vals_unified = template1.unify_keys_vals(global_keys)
-    labels = template1.label_input_ids(unified_dict=key_vals_unified,tokens = tokens,  bboxes = bboxes, input_ids=input_ids, tokenizer=tokenizer)
+    labels= template1.label_input_ids(unified_dict=key_vals_unified,tokens = tokens,  bboxes = bboxes, input_ids=input_ids, input_id_map=input_id_map, tokenizer=tokenizer)
+    #token_group_key, token_group_val, token_group_others = template1.form_token_groups(unified_dict=key_vals_unified, tokens=tokens, bboxes=bboxes)    
+    key_set, val_set, token_map = template1.form_token_groups(unified_dict=key_vals_unified, tokens=tokens, bboxes=bboxes)
+    entities = template1.form_entities(unified_dict=key_vals_unified,tokens = tokens,  bboxes = bboxes, input_ids=input_ids, input_id_map=input_id_map, tokenizer=tokenizer)
     print(len(input_ids))
     print(len(labels))
     #for id, label in zip(input_ids, labels):
