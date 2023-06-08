@@ -24,6 +24,7 @@ import numpy as np
 import time
 import copy
 import string
+import editdistance
 
 pytesseract.pytesseract.tesseract_cmd = r'C://Program Files//Tesseract-OCR//tesseract.exe'
 pdfmetrics.registerFont(TTFont('Arial', 'arial.ttf'))
@@ -501,8 +502,11 @@ class Template_Dekra(Template):
     def post_process_token_groups(self, key_set:dict=None):
         for key in key_set.keys():
             token_list = key_set[key]
+            #print(token_list)
             #print(key)
             token_dict_indices = {token:i for i, token in enumerate(token_list)}
+            #print(token_dict_indices)
+            #print('----')
             #print(f'token_list {token_list}')
             token_list_sorted = sorted(token_list, key=len, reverse=True)
             #print(token_list_sorted)
@@ -535,7 +539,7 @@ class Template_Dekra(Template):
                         key_set[key].append(token)
                         token_map[token].append('key')
 
-
+        ## add found tokens in the respective dicts
         for val in val_set.keys():
             for token in tokens:
                 token = str(token)
@@ -544,8 +548,38 @@ class Template_Dekra(Template):
                         val_set[val].append(token)
                         token_map[token].append('val')
 
+
+
         key_set = self.post_process_token_groups(key_set=key_set)
         val_set = self.post_process_token_groups(key_set=val_set)
+        
+        
+        ## correct the order
+        
+        for key in key_set.keys():
+            token_list = key_set[key]
+            token_indices_in_key =[]
+            tokens_with_key_index = {}
+            for token in token_list:
+                token_index = key.find(token)
+                token_indices_in_key.append(token_index)
+                tokens_with_key_index[token_index] = token
+            token_indices_in_key.sort()
+            tokens_in_order = [tokens_with_key_index[i] for i in token_indices_in_key]
+            key_set[key] = tokens_in_order
+
+        for val in val_set.keys():
+            token_list = val_set[val]
+            token_indices_in_val =[]
+            tokens_with_val_index = {}
+            for token in token_list:
+                token_index = val.find(token)
+                token_indices_in_val.append(token_index)
+                tokens_with_val_index[token_index] = token
+            token_indices_in_val.sort()
+            tokens_in_order = [tokens_with_val_index[i] for i in token_indices_in_val]
+            val_set[val] = tokens_in_order
+            
 
 
         for token_key in token_map.keys():
@@ -553,6 +587,26 @@ class Template_Dekra(Template):
             if len(token_map[token_key]) == 0:
                 #other_map[token_key]
                 token_map[token_key].append('other')
+
+        ##post process the token maps by edit distance
+        for key in key_set.keys():
+            if len(key_set[key]) == 0:
+                print(f'key {key}')
+                for token in token_map.keys():
+                    if token_map[token][0] == 'other' and editdistance.eval(key, token) <= 2:
+                        print(f'{key}, {token}')
+                        token_map[token] = ['key']
+                        key_set[key].append(token)
+
+        for val in val_set.keys():
+            if len(val_set[val]) == 0:
+                #print(f'val {val}')
+                for token in token_map.keys():
+                    #print(f'{val} {token} {token_map[token]} {editdistance.eval(val, token)}')
+                    if token_map[token][0] == 'other' and editdistance.eval(val, token) <= 2:
+                        #print(f'{val}, {token}')
+                        token_map[token] = ['val']
+                        val_set[val].append(token)
 
         return key_set, val_set, token_map
 
@@ -606,12 +660,14 @@ class Template_Dekra(Template):
         #input_id_token = {tokenizer.decode(id):id for id in input_ids}
         entities = {'start':[], 'end':[], 'label':[]}
         token_group_key, token_group_val, token_group = self.form_token_groups(unified_dict=unified_dict, tokens=tokens, bboxes=bboxes)
+        entity_key_index_mapping = {} # top map entity and corresponding key/val appearing in unified dic for later use
         for i, (key, tokens) in enumerate(token_group_key.items()):
             if len(tokens)>0:
                 token_first = tokens[0]
                 token_last = tokens[-1]
                 token_first_tokenized = tokenizer.tokenize(token_first)
                 token_last_tokenized = tokenizer.tokenize(token_last)
+
                 #print(set(str(string.punctuation)))
                 token_first_tokenized = [token for token in token_first_tokenized if token not in (' ', '', '\t', '\n','▁') and token not in set(str(string.punctuation))]
                 token_last_tokenized = [token for token in token_last_tokenized if token not in (' ', '', '\t', '\n','▁') and token not in set(str(string.punctuation))]
@@ -626,8 +682,13 @@ class Template_Dekra(Template):
                 #if len(ids_present) >0:
                 entities['start'].append(input_ids.index(id_list_key_first_token[0]))
                 entities['end'].append(input_ids.index(id_list_key_last_token[-1]) + 1)
-                entities['label'].append(label_vals_simplified['QUESTION'])    
-            
+                entities['label'].append(label_vals_simplified['QUESTION'])
+                if key == 'förderhöhe':
+                    print(f'{key} {i}')
+                entity_key_index_mapping[i] = key
+        
+        max_val = max(entity_key_index_mapping.keys()) + 1
+        
         for i, (key, tokens) in enumerate(token_group_val.items()):
             if len(tokens) >0:
                 token_first = tokens[0]
@@ -640,30 +701,41 @@ class Template_Dekra(Template):
                 token_first_tokenized = [token for token in token_first_tokenized if token not in (' ', '', '\t', '\n','▁') and token not in set(str(string.punctuation))]
                 token_last_tokenized = [token for token in token_last_tokenized if token not in (' ', '', '\t', '\n','▁') and token not in set(str(string.punctuation))]
                 
-                print(i)
-                print(f'tokens {tokens}')
-                print(f'token_first {token_first}')
-                print(f'token_last {token_last}')
-                print(f'token_first_tokenized {token_first_tokenized}')
-                print(f'token_last_tokenized {token_last_tokenized}')
-                print(f'token_first_tokenized {id_list_key_first_token}')
-                print(f'token_last_tokenized {id_list_key_last_token}')
-                print(f'tokenizer.decode(input_ids.index(id_list_key_last_token[-1]) + 1) {tokenizer.decode(input_ids.index(id_list_key_last_token[-1]) + 1)}')
+                #if(i==2):
+                #    print(f'tokens {tokens}')
+                #    print(f'token_first {token_first}')
+                #    print(f'token_last {token_last}')
+                #    print(f'token_first_tokenized {token_first_tokenized}')
+                #    print(f'token_last_tokenized {token_last_tokenized}')
+                #print(i)
+                #print(f'tokens {tokens}')
+                #print(f'token_first {token_first}')
+                ##print(f'token_last {token_last}')
+                #print(f'token_first_tokenized {token_first_tokenized}')
+                #print(f'token_last_tokenized {token_last_tokenized}')
+                #print(f'token_first_tokenized {id_list_key_first_token}')
+                #print(f'token_last_tokenized {id_list_key_last_token}')
+                #print(f'tokenizer.decode(input_ids.index(id_list_key_last_token[-1]) + 1) {tokenizer.decode(input_ids.index(id_list_key_last_token[-1]) + 1)}')
                 
                 #ids_present = [id for id in id_list_val if id in input_ids]
                 #print(f'ids_present {ids_present}')
                 #if len(ids_present) >0:
                 entities['start'].append(input_ids.index(id_list_key_first_token[-1]))
                 #print('decoding first and last index')
-                print(f'start {input_ids.index(id_list_key_first_token[0])} {tokenizer.decode(input_ids[input_ids.index(id_list_key_first_token[0])])}')
+                #print(f'start {input_ids.index(id_list_key_first_token[0])} {tokenizer.decode(input_ids[input_ids.index(id_list_key_first_token[0])])}')
                 entities['end'].append(input_ids.index(id_list_key_last_token[-1]) + 1)
                 #print(f'end {input_ids.index(id_list_key_last_token[-1]) + 1} {tokenizer.decode(input_ids[input_ids.index(id_list_key_last_token[-1]) + 1])}')
                 #print(f'start : end {input_ids[input_ids.index(id_list_key_first_token[0])]} : {input_ids.index(id_list_key_last_token[-1]) + 1} \
                  #     {tokenizer.decode(input_ids[input_ids.index(id_list_key_first_token[0]):input_ids.index(id_list_key_last_token[-1]) + 1])}')
-                print('----------------')
+                #print('----------------')
                 entities['label'].append(label_vals_simplified['ANSWER'])
+                update_index = int(i) + max_val
+                
+                entity_key_index_mapping[update_index] = key 
         
-        for key, tokens in token_group.items():
+        max_val = max(entity_key_index_mapping.keys()) + 1
+
+        for i, (key, tokens) in enumerate(token_group.items()):
             if len(tokens)>0 and 'other' in tokens:
                 token = key
                 token_tokenized = tokenizer.tokenize(token)
@@ -675,13 +747,45 @@ class Template_Dekra(Template):
                 entities['start'].append(input_ids.index(id_list_key[0]))
                 entities['end'].append(input_ids.index(id_list_key[-1]) + 1)
                 entities['label'].append(label_vals_simplified['OTHER'])
+                update_index = int(i) + max_val
+                entity_key_index_mapping[update_index] = key
                 
 
 
         
+        entity_key_index_mapping_reverse = {entity_key_index_mapping[key]:key for key in entity_key_index_mapping.keys()}
+        return entities, entity_key_index_mapping, entity_key_index_mapping_reverse
 
-        return entities
+    def key_val_mapping(self, entities:dict = None, unified_dict:dict=None, key_set:dict=None, val_set:dict=None):
+        
+        
+        key_set_indices = {key:i for i,key in enumerate(unified_dict.keys())}
+        
+        val_set_indices = {key_set[key]:key_set_indices[key] for key in key_set_indices }
 
+        return key_set_indices , val_set_indices
+
+    def form_relations(self, entities:dict=None, unified_dict:dict = None, key_set:dict=None, val_set:dict=None, entity_key_index_mapping:dict=None, entity_key_index_mapping_reverse:dict = None):
+        relations = {'head':[], 'tail':[]}
+        print(entity_key_index_mapping_reverse)
+        for key in key_set.keys():
+            key_index = entity_key_index_mapping_reverse[key]
+            val = unified_dict[key]
+            val_index = entity_key_index_mapping_reverse[val]
+            relations['head'].append(key_index)
+            relations['tail'].append(val_index)
+
+        
+        #question_entity_indices = [i for i in range(len(entities['start'])) if entities['label'][i]==1]
+        #answer_entity_indices = [i for i in range(len(entities['start'])) if entities['label'][i]==2]
+        
+        #print(question_entity_indices)
+        #print(answer_entity_indices)
+        #for i,j in zip(question_entity_indices, answer_entity_indices):
+        #    relations['head'].append(i)
+        #    relations['tail'].append(j)
+        return relations
+        
     '''def encode_new_tokens(self,tokens:list=None, bboxes:list=None, tokenizer:AutoTokenizer=None):
         #tokens, bboxes = self.preprocess_tokens(tokens, bboxes)
         input_ids = tokenizer.encode(text = tokens, boxes = bboxes, is_pretokenized=False) 
