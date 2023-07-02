@@ -1,4 +1,3 @@
-from Template import Template
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen.canvas import Canvas as Canvas
 import cv2
@@ -39,7 +38,7 @@ def unify_keys_vals(dict_):
                 unified_dict[key_2] = element.lower()
     return unified_dict
     
-def get_ocr_data(conf_val:float=50, image_path:str= 'form.jpg'):
+def get_ocr_data(conf_val:float=40, image_path:str= 'form.jpg'):
     image = cv2.imread(image_path)
     results = pytesseract.image_to_data(image, output_type=Output.DICT, lang='deu')
     n_boxes = len(results['level'])
@@ -71,6 +70,8 @@ def get_ocr_data(conf_val:float=50, image_path:str= 'form.jpg'):
             cv2.putText(image, text, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX,
                     1.2, (0, 0, 255), 3)
     return tokens, bboxes, image
+
+
     
 def add_tokens_tokenizer( tokens:list=None, bboxes:list=None, tokenizer:AutoTokenizer=None, model:LayoutLMv2ForRelationExtraction=None):
     
@@ -78,6 +79,9 @@ def add_tokens_tokenizer( tokens:list=None, bboxes:list=None, tokenizer:AutoToke
 
     # check if the tokens are already in the vocabulary
     new_tokens = set(new_tokens) - set(tokenizer.vocab.keys())
+    for token in new_tokens:
+        if token in ('ergebnis', 'der', 'prüfung'):
+            print('yes')
 
     # add the tokens to the tokenizer vocabulary
     tokenizer.add_tokens(list(new_tokens))
@@ -92,6 +96,7 @@ def add_tokens_tokenizer( tokens:list=None, bboxes:list=None, tokenizer:AutoToke
        
     return tokenizer, model
         
+
 
 def preprocess_tokens(tokens:list=None, bboxes:list=None):
     speical_characters = set(string.punctuation)
@@ -113,24 +118,26 @@ def encode_tokens(tokens:list=None, bboxes:list = None, tokenizer : AutoTokenize
     bboxes_tokenized = []
     input_id_map ={}
     input_id_index_map = {}
-    
+    #print(tokens)
     for i in range(len(tokens)):
         tokenized_tokens = tokenizer.tokenize(tokens[i])
         #print(tokenized_token)
         #print(bboxes[i])
         input_ids_local = tokenizer.encode(text=tokenized_tokens, boxes = [bboxes[i] for j in range(len(tokenized_tokens))], is_pretokenized=True, add_special_tokens=False)
         for tokenized_token, input_id in zip(tokenized_tokens, input_ids_local):
-            if tokenized_token not in set(str(string.punctuation)) and tokenized_token not in ('', ' ', '\t', '\n'):
+            if tokenized_token not in set(str(string.punctuation)) and tokenized_token not in ('', ' ', '\t', '\n','▁') and len(tokenized_token) >0:
                 input_ids.append(input_id)
                 input_id_map[tokenized_token] = input_id
-                bboxes_tokenized.append(bboxes[i]) 
+                bboxes_tokenized.append(bboxes[i])
+    #print(input_id_map) 
     return input_ids, bboxes_tokenized, input_id_map    
     
     
-def check_token_presence_within_list(token:str=None, token_list:str=None):
+def check_token_presence_within_list(token:str=None, token_list:str=None, key:dict = None):
     flag = False
+    key_split = key.split(" ")
     for i in token_list:
-        if token in i:
+        if token in i and token not in key_split:
             flag = True
             return flag
     return flag
@@ -162,7 +169,7 @@ def post_process_token_groups(key_set:dict=None):
         #print(token_list_sorted)
         tokens_to_keep=[]
         for token in token_list_sorted:
-            if not check_token_presence_within_list(token=token, token_list=tokens_to_keep):
+            if not check_token_presence_within_list(token=token, token_list=tokens_to_keep, key = key):
                 tokens_to_keep.append(token)
         #print(f'tokens_to_keep {tokens_to_keep}')
         tokens_rearranged = rearrange_token_order(token_key_str= key, token_list=tokens_to_keep, token_indices = token_dict_indices)
@@ -241,10 +248,10 @@ def form_token_groups(unified_dict:dict=None, tokens:list=None, bboxes:list = No
     ##post process the token maps by edit distance
     for key in key_set.keys():
         if len(key_set[key]) == 0:
-            print(f'key {key}')
+            #print(f'key {key}')
             for token in token_map.keys():
                 if token_map[token][0] == 'other' and editdistance.eval(key, token) <= 2:
-                    print(f'{key}, {token}')
+                    #print(f'{key}, {token}')
                     token_map[token] = ['key']
                     key_set[key].append(token)
 
@@ -292,8 +299,268 @@ def label_input_ids(key_set:dict=None, val_set:dict=None, input_id_map:dict=None
             labels[id] = label_vals['O']
     labels_list = [labels[id] for id in input_ids]
     return labels_list
-    
+
+
+def reorder_input_ids_on_key_vals(input_ids:list = None, key_set:dict=None, val_set:dict = None, tokenizer:AutoTokenizer = None, input_id_map:dict = None):
+    #input_ids = np.array(input_ids)
+    unified_dict = key_set | val_set
+    #print([(i, tokenizer.decode(id)) for i,id in enumerate(input_ids)])
+    #print('------------')
+    for key in unified_dict.keys():
+        key_tokens = unified_dict[key]
+        if len(key_tokens) > 1:
+            tokens_tokenized = [tokenizer.tokenize(token) for token in key_tokens]
+            
+
+            tokens_tokenized = [token for token_list in tokens_tokenized for token in token_list if token not in (' ', '', '\t', '\n','▁') and token not in set(str(string.punctuation))]
+                
+            id_list_key_token = [input_id_map[t] for t in tokens_tokenized]
+            indices = find_sequnce_indices(id_list_key_token, input_ids=input_ids)
+            
+            if len(indices) == 0:
+                print(f'id_list_key_token {[tokenizer.decode(id) for id in id_list_key_token]}')
+                id_indices = [input_ids.index(id) for id in id_list_key_token]
+                adjecent_indices = []
+                for i in range(len(id_indices)):
+                    if i+1 < len(id_indices):
+                        if i==0:
+                           if id_indices[0] == id_indices[1] - 1:
+                               adjecent_indices.append(1)
+                           else:
+                                adjecent_indices.append(0)
+                        if i == len(id_indices) -1:
+                            if id_indices[len(id_indices) -1] == id_indices[len(id_indices) -2] + 1:
+                               adjecent_indices.append(1)
+                            else:
+                                adjecent_indices.append(0)
+                        else:        
+                            if id_indices[i+1] == id_indices[i] + 1:
+                                adjecent_indices.append(1)
+                            else:
+                                adjecent_indices.append(0)
+                print(f'adjecent_indices {adjecent_indices}')
+                print(f'id_indices {id_indices}')
+                print('----')
+                for i, (j,k) in enumerate(zip(adjecent_indices, id_indices)):
+                    index_to_be_swapped = None
+                    index_to_be_swapped_with = None
+                    if i==0:
+                        #print(f'in start i:{i} j:{j} k:{k}')
+                        if j==0:
+                            
+                            index_to_be_swapped = j
+                            index_to_be_swapped_with = id_indices[i + 1] - 1
+                    
+                    if i == len(id_indices) -1:
+                        #print(f'in end i:{i} j:{j} k:{k}')
+                        if j==0:
+                            
+                            index_to_be_swapped = j
+                            index_to_be_swapped_with = id_indices[i - 1] + 1
+                    else:
+                        #print(f'elsewhere i:{i} j:{j} k:{k}')
+                        if j ==0:
+                            
+                            index_to_be_swapped = j
+                            index_to_be_swapped_with = id_indices[i] + 1
+                    if index_to_be_swapped is not None and index_to_be_swapped_with is not None:
+                        print('indexes are not None')     
+                        input_ids[index_to_be_swapped], input_ids[index_to_be_swapped_with] = input_ids[index_to_be_swapped_with], input_ids[index_to_be_swapped]
+                        
+         
+    return input_ids
+
+'''def reorder_input_ids_on_key_vals(input_ids:list = None, key_set:dict=None, val_set:dict = None, tokenizer:AutoTokenizer = None, input_id_map:dict = None):
+    #input_ids = np.array(input_ids)
+    unified_dict = key_set | val_set
+    for key in unified_dict.keys():
+        key_tokens = unified_dict[key]
+        if len(key_tokens) > 1:
+            tokens_tokenized = [tokenizer.tokenize(token) for token in key_tokens]
+            
+
+            tokens_tokenized = [token for token_list in tokens_tokenized for token in token_list if token not in (' ', '', '\t', '\n','▁') and token not in set(str(string.punctuation))]
+                
+            id_list_key_token = [input_id_map[t] for t in tokens_tokenized]
+            indices = find_sequnce_indices(id_list_key_token, input_ids=input_ids)
+            if len(indices) == 0:
+                subsequence_index = []
+                for i in range(len(input_ids)):
+                    if input_ids[i:i+2] == id_list_key_token[:2]:
+                        subsequence_index.append((i, i+2))
+                print('----------')
+                print(f' testing reorder {id_list_key_token} subsequence_index[0] {subsequence_index}')
+                print('-----------')
+                if len(id_list_key_token) >2 and len(subsequence_index[0]) > 0:
+                    print('----------')
+                    print(f' testing reorder {id_list_key_token} subsequence_index[0] {subsequence_index[0]}')
+                    print('-----------')
+                    tokens_indices_list = [subsequence_index[0], subsequence_index[1]-1]
+                    input_ids_np = np.array(input_ids)
+                    for i in range(2,len(id_list_key_token)):
+                        token = id_list_key_token[i]
+                        indices_token = np.where(input_ids_np == token)[0]
+                        flag = 0
+                        for index in indices_token:
+                            if index == tokens_indices_list[-1] + 1: #checking if the token appears after the last token in the subsequence list (of lenght 2)
+                                flag = 1
+                                tokens_indices_list.append(index)
+                        if flag == 0:
+                            index_to_be_swapped = indices_token[0]
+                            index_to_be_swapped_with = tokens_indices_list[-1] + 1
+                            input_ids[index_to_be_swapped], input_ids[index_to_be_swapped_with] = input_ids[index_to_be_swapped_with], input_ids[index_to_be_swapped]
+                            tokens_indices_list.append(index_to_be_swapped_with)
+    return input_ids'''
+                    
+                        
+                    
+
+def find_sequnce_indices(sequence:list = None, input_ids:list = None):
+    indexes = []
+    for i in range(len(input_ids)):
+        if input_ids[i:i+len(sequence)] == sequence:
+            indexes.append((i, i+len(sequence)))
+    return indexes
+
+'''def find_sequnce_indices(sequence:list = None, input_ids:list = None):
+    indexes = []
+    difference= None
+    for i in range(len(input_ids)):
+        count = 0
+        matched_elements = [element for element in sequence if element in input_ids[i:i+len(sequence)]]
+        difference_local = len(sequence) - len(matched_elements)
+        if difference_local != 0:
+            if difference_local <= 1:
+                print(f'input_ids[i:i+len(sequence) {input_ids[i:i+len(sequence)]}')
+                print(f' matched_elements {matched_elements}')
+                print(f' sequence {sequence}')
+                indexes.append((i, i+len(sequence)))
+                difference = difference_local
+        else:
+            indexes.append((i, i+len(sequence)))
+            difference = difference_local
+    return indexes, difference'''
+
 def form_entities(unified_dict:dict=None, input_ids:list= None, input_id_map:dict = None, tokenizer:AutoTokenizer=None, tokens:list = None, bboxes:list = None):
+    label_vals = {'O' : 0, 'B-QUESTION' : 1, 'B-ANSWER' : 2, 'B-HEADER' : 3, 'I-ANSWER' : 4, 'I-QUESTION' : 5, 'I-HEADER' : 6}
+    label_vals_simplified = {"OTHER": 0, "QUESTION" : 1, "ANSWER" : 2}
+    input_index_map = {i:id for i,id in enumerate(input_ids)}
+    #input_ids = np.array(input_ids)
+    #print(f'decode test {tokenizer.decode(250009)}')
+    #print(input_ids)
+    #print([tokenizer.decode(id) for id in input_ids])
+    entities = {'start':[], 'end':[], 'label':[]}
+    token_group_key, token_group_val, token_group = form_token_groups(unified_dict=unified_dict, tokens=tokens, bboxes=bboxes)
+    entity_key_index_mapping = {} # top map entity and corresponding key/val appearing in unified dic for later use
+    flag = 0
+    for i, (key, tokens) in enumerate(token_group_key.items()):
+        if len(tokens)>0 :
+            
+            tokens_tokenized = [tokenizer.tokenize(token) for token in tokens]
+            
+
+            tokens_tokenized = [token for token_list in tokens_tokenized for token in token_list if token not in (' ', '', '\t', '\n','▁') and token not in set(str(string.punctuation))]
+                
+            id_list_key_token = [input_id_map[t] for t in tokens_tokenized]
+            
+                        
+            if len(id_list_key_token) > 1:
+                indices = find_sequnce_indices(sequence=id_list_key_token, input_ids=input_ids)
+                if len(indices)>0:
+                    indices = indices[0]
+                else:
+                    return 0,0,0
+            else:
+                indices = [input_ids.index(id_list_key_token[-1]), input_ids.index(id_list_key_token[-1]) + 1] 
+            
+            if len(indices) > 0:
+                
+                entities['start'].append(indices[0])
+                entities['end'].append(indices[-1])
+                #print(tokenizer.decode(input_ids[indices[0]:indices[-1]]))
+                entities['label'].append(label_vals_simplified['QUESTION'])
+            #if key == 'förderhöhe':
+            #    print(f'{key} {i}')
+            entity_key_index_mapping[i] = key
+        
+    max_val = max(entity_key_index_mapping.keys()) + 1
+        
+    for i, (key, tokens) in enumerate(token_group_val.items()):
+        if len(tokens) >0:
+            tokens_tokenized = [tokenizer.tokenize(token) for token in tokens]
+            
+
+            tokens_tokenized = [token for token_list in tokens_tokenized for token in token_list if token not in (' ', '', '\t', '\n','▁') and token not in set(str(string.punctuation))]
+                
+            id_list_key_token = [input_id_map[t] for t in tokens_tokenized]
+            
+                     
+            if len(id_list_key_token) > 1:
+                #print(tokens)
+                #print(tokens_tokenized)
+                #print(id_list_key_token)
+                indices = find_sequnce_indices(sequence=id_list_key_token, input_ids=input_ids)
+                #print(indices)
+                #print('-------')
+                if len(indices)>0:
+                    indices = indices[0]
+                else:
+                    return 0,0,0
+                
+               
+                
+                #print('--------')
+            else:
+                indices = [input_ids.index(id_list_key_token[-1]), input_ids.index(id_list_key_token[-1]) + 1]
+                
+            if len(indices) >0:
+               
+                entities['start'].append(indices[0])
+                entities['end'].append(indices[-1])
+                
+                entities['label'].append(label_vals_simplified['ANSWER'])
+            update_index = int(i) + max_val
+                
+            entity_key_index_mapping[update_index] = key 
+        
+    max_val = max(entity_key_index_mapping.keys()) + 1
+
+    for i, (key, tokens) in enumerate(token_group.items()):
+        if len(tokens)>0 and 'other' in tokens:
+            token = key
+            token_tokenized = tokenizer.tokenize(token)
+             
+            token_tokenized = [token for token in token_tokenized if token not in (' ', '', '\t', '\n','▁') and token not in string.punctuation]
+                
+                    
+            id_list_key_token = [input_id_map[t] for t in token_tokenized]
+            
+                        
+            if len(id_list_key_token) > 1:
+                indices = find_sequnce_indices(sequence=id_list_key_token, input_ids=input_ids)
+                if len(indices)>0:
+                    indices = indices[0]
+                else:
+                    return 0,0,0
+            else:
+                indices = [input_ids.index(id_list_key_token[-1]), input_ids.index(id_list_key_token[-1]) + 1]
+            
+            if len(indices) > 0:
+                entities['start'].append(indices[0])
+                entities['end'].append(indices[-1])
+                entities['label'].append(label_vals_simplified['OTHER'])
+            update_index = int(i) + max_val
+            entity_key_index_mapping[update_index] = key
+                
+
+
+        
+    entity_key_index_mapping_reverse = {entity_key_index_mapping[key]:key for key in entity_key_index_mapping.keys()}
+    return entities, entity_key_index_mapping, entity_key_index_mapping_reverse
+    
+        
+    
+'''def form_entities(unified_dict:dict=None, input_ids:list= None, input_id_map:dict = None, tokenizer:AutoTokenizer=None, tokens:list = None, bboxes:list = None):
     label_vals = {'O' : 0, 'B-QUESTION' : 1, 'B-ANSWER' : 2, 'B-HEADER' : 3, 'I-ANSWER' : 4, 'I-QUESTION' : 5, 'I-HEADER' : 6}
     label_vals_simplified = {"OTHER": 0, "QUESTION" : 1, "ANSWER" : 2}
     
@@ -312,12 +579,20 @@ def form_entities(unified_dict:dict=None, input_ids:list= None, input_id_map:dic
                 
             id_list_key_first_token = [input_id_map[t] for t in token_first_tokenized]
             id_list_key_last_token = [input_id_map[t] for t in token_last_tokenized]
-                
-            entities['start'].append(input_ids.index(id_list_key_first_token[0]))
-            entities['end'].append(input_ids.index(id_list_key_last_token[-1]) + 1)
+            
+            indices = [input_ids.index(id_list_key_first_token[-1]), input_ids.index(id_list_key_last_token[-1]) + 1]
+            
+            if indices[0] > indices[1]:
+                print(token_first)
+                indices_1 = np.where(np.array(input_ids) == id_list_key_last_token[-1])[0]
+                index_to_keep = [i for i in indices_1 if i>indices[0]][0]
+                indices[1] = index_to_keep + 1
+            
+            entities['start'].append(indices[0])
+            entities['end'].append(indices[1])
             entities['label'].append(label_vals_simplified['QUESTION'])
-            if key == 'förderhöhe':
-                print(f'{key} {i}')
+            #if key == 'förderhöhe':
+            #    print(f'{key} {i}')
             entity_key_index_mapping[i] = key
         
     max_val = max(entity_key_index_mapping.keys()) + 1
@@ -334,9 +609,16 @@ def form_entities(unified_dict:dict=None, input_ids:list= None, input_id_map:dic
             token_first_tokenized = [token for token in token_first_tokenized if token not in (' ', '', '\t', '\n','▁') and token not in set(str(string.punctuation))]
             token_last_tokenized = [token for token in token_last_tokenized if token not in (' ', '', '\t', '\n','▁') and token not in set(str(string.punctuation))]
                 
-            entities['start'].append(input_ids.index(id_list_key_first_token[-1]))
+            indices = [input_ids.index(id_list_key_first_token[-1]), input_ids.index(id_list_key_last_token[-1]) + 1]
             
-            entities['end'].append(input_ids.index(id_list_key_last_token[-1]) + 1)
+            if indices[0] > indices[1]:
+                print(token_first)
+                indices_1 = np.where(np.array(input_ids) == id_list_key_last_token[-1])[0]
+                index_to_keep = [i for i in indices_1 if i>indices[0]][0]
+                indices[1] = index_to_keep + 1
+            
+            entities['start'].append(indices[0])
+            entities['end'].append(indices[1])
                 
             entities['label'].append(label_vals_simplified['ANSWER'])
             update_index = int(i) + max_val
@@ -354,8 +636,16 @@ def form_entities(unified_dict:dict=None, input_ids:list= None, input_id_map:dic
                     
             id_list_key = [input_id_map[t] for t in token_tokenized]
             #if len(ids_present) >0:
-            entities['start'].append(input_ids.index(id_list_key[0]))
-            entities['end'].append(input_ids.index(id_list_key[-1]) + 1)
+            indices = [input_ids.index(id_list_key[-1]), input_ids.index(id_list_key[-1]) + 1]
+            
+            if indices[0] > indices[1]:
+                print(token_first)
+                indices_1 = np.where(np.array(input_ids) == id_list_key_last_token[-1])[0]
+                index_to_keep = [i for i in indices_1 if i>indices[0]][0]
+                indices[1] = index_to_keep + 1
+            
+            entities['start'].append(indices[0])
+            entities['end'].append(indices[1])
             entities['label'].append(label_vals_simplified['OTHER'])
             update_index = int(i) + max_val
             entity_key_index_mapping[update_index] = key
@@ -364,7 +654,7 @@ def form_entities(unified_dict:dict=None, input_ids:list= None, input_id_map:dic
 
         
     entity_key_index_mapping_reverse = {entity_key_index_mapping[key]:key for key in entity_key_index_mapping.keys()}
-    return entities, entity_key_index_mapping, entity_key_index_mapping_reverse
+    return entities, entity_key_index_mapping, entity_key_index_mapping_reverse'''
 
 def key_val_mapping(entities:dict = None, unified_dict:dict=None, key_set:dict=None, val_set:dict=None):
     key_set_indices = {key:i for i,key in enumerate(unified_dict.keys())}
@@ -376,13 +666,16 @@ def form_relations(entities:dict=None, unified_dict:dict = None, key_set:dict=No
     relations = {'head':[], 'tail':[]}
     #print(entity_key_index_mapping_reverse)
     for key in key_set.keys():
-        key_index = entity_key_index_mapping_reverse[key]
-        val = unified_dict[key]
-        if val not in entity_key_index_mapping_reverse.keys(): # If val is not detected by ocr both key and vals are ommitted from relations
-            continue
-        val_index = entity_key_index_mapping_reverse[val]
-        relations['head'].append(key_index)
-        relations['tail'].append(val_index)
+        if key in entity_key_index_mapping_reverse.keys():
+            key_index = entity_key_index_mapping_reverse[key]
+            val = unified_dict[key]
+            if val in entity_key_index_mapping_reverse.keys(): # If val is not detected by ocr both key and vals are ommitted from relations
+                val_index = entity_key_index_mapping_reverse[val]
+                relations['head'].append(key_index)
+                relations['tail'].append(val_index)
+            else:
+                return 0
+                
 
     return relations
     

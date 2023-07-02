@@ -1,0 +1,13 @@
+{
+    "num_files":30,
+    "images_dir" : "images",
+    "images_resized_dir" : "images_resized",
+    "bbox_dir":"bbox",
+    "input_ids_dir" : "input_ids",
+    "labels_dir" : "labels",
+    "entities_dir" : "entities",
+    "relations_dir" : "relations",
+    "type":"train",
+    "clear_all_old_files" : true,
+    "clear_old_files_type": [true, "train"]
+}
