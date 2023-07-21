@@ -6,7 +6,9 @@ from Template import Template
 import json
 #pwd = os.getcwd()
 #os.chdir("..")
+
 from utility_functions.utilities_kie import *
+
 #os.chdir(pwd)
 from faker import Faker
 locales = ['de_DE']
@@ -54,8 +56,8 @@ class Template_Dekra(Template):
 
             'client_address_config' : {
             'font' : 'Arial',
-            'line_break' : 12,
-            'font_size' : 12
+            'line_break' : 10,
+            'font_size' : 9
             },
 
             'evaluator_address' : {
@@ -79,11 +81,29 @@ class Template_Dekra(Template):
 
             'evaluator_address_config' : {
                 'font':'Arial',
-                'line_break' : 10,
+                'line_break' : 9,
                 'font_size' : 8,
                 'new_line':['Telefax', 'kontakt']
+            },
+            'remarks_big':{
+                'sentance': 'test_paragraph'
+            },
+            
+            'remarks_big_config':{
+                'font':'Arial',
+                'line_break' : 12,
+                'font_size' : 9
+            },
+            'remarks_small':{
+                'Bemerkungen': 'test_sentance'
+            },
+            'remarks_small_config':{
+                'font_size' : 9,
+                'font-type-keys' : 'Arial-Bold',
+                'font-type-vals' : 'Arial',
+                'line_break' : 12
             }
-            }
+        }
         return utility_info
         
     def init_global_keys(self):
@@ -95,9 +115,9 @@ class Template_Dekra(Template):
         },
 
         'test_certificate_config' : {
-        'font_size' : 16,
+        'font_size' : 14,
         'font_type': 'Arial-Bold',
-        'line-break' : 25 # should be 25-30
+        'line-break' : 20 # should be 25-30
         },
 
         'test_certificate_results' : {
@@ -112,12 +132,12 @@ class Template_Dekra(Template):
         },
 
         'test_certificate_results_config' : {
-        'font_size' : 10,
+        'font_size' : 9,
         'font-type-keys' : 'Arial-Bold',
         'font-type-vals' : 'Arial',
         'vertical-left-only' : ['Objektstandort', 'Arbeitgeber'],
-        'line-break' : 20,
-        'key-val-spacing': 140
+        'line-break' : 10,
+        'key-val-spacing': 130
   
         },
 
@@ -130,18 +150,43 @@ class Template_Dekra(Template):
             'Tragfähigkeit' : '1350 kg / 18 Pers', # kg and persons
             'Haltestellen / Zugangstellen' : '26 / 26', #int
             'Geschwindigkeit': '4,00 m/s', #time / speet
-            'Förderhöhe' : '93,68 m', #distance in meters
-            'Ergebnis der Prüfung' : 'Keine Mängel' 
+            'Förderhöhe' : '93,68 m' #distance in meters
+
         },
 
         'technical_specifications_config': {
-        'font_size' : 10,
+        'font_size' : 9,
         'font-type-keys' : 'Arial-Bold',
         'font-type-vals' : 'Arial',
-        'line-break' : 20,
-        'key-val-spacing' : 140
+        'line-break' : 10,
+        'key-val-spacing' : 130
     
-        }}
+        },
+        
+        'final_result':{
+            'Ergebnis der Prüfung' : 'Keine Mängel'
+        },
+        
+        'final_result_config' : {
+            'font_size':11,
+            'font-type-keys' : 'Arial-Bold',
+            'key-val-spacing' : 140
+        },
+        
+        'prufung_dates' : {
+            'Nächste Prüfung':'dummy',
+            'Datum der Prüfung': 'dummy'
+
+        },
+        'prufung_dates_config' : {
+            'font_size':9,
+            'font-type-keys' : 'Arial-Bold',
+            'font-type-vals' : 'Arial',
+            'key-val-spacing' : 110
+
+        }
+        
+        }
         return global_keys
     
     def next_line(self, start_y: int, line_break: int):
@@ -150,6 +195,7 @@ class Template_Dekra(Template):
     def rearange_key_vals_test_results(self, dict_list : dict, keys_to_keep: list): ## keys which needs to appear either of the positions mentioned in indices usually 1,6
         already_swapped_indices = []
         swap_indices = np.arange(0,5)
+        swap_indices = [ i for i in swap_indices if i not in (2,3)]
         keys = [key for i, (key, val) in enumerate(dict_list)]
         #print(keys)
         '''for i , (key, val) in enumerate(dict_list):
@@ -162,11 +208,11 @@ class Template_Dekra(Template):
                             dict_list[swap_index], dict_list[i] = dict_list[i], dict_list[swap_index]
                             break'''
         for key in keys_to_keep:
-            if keys.index(key) >= 6:
+            if keys.index(key) >=6 or keys.index(key) in (2,3):
                 i = keys.index(key)
                 while True:
                     #print("here")
-                    swap_index = random.choice([ i for i in swap_indices if i not in (1,2)])
+                    swap_index = random.choice(swap_indices)
                     if dict_list[swap_index][0] not in keys_to_keep:
                         dict_list[swap_index], dict_list[i] = dict_list[i], dict_list[swap_index]
                         break
@@ -178,13 +224,26 @@ class Template_Dekra(Template):
 
         return dict_list
     
+    def generate_geschwindigkeit(slef):
+        
+        speed = random.choice(np.arange(4,6,0.05))
+        speed = np.round(speed, 3)
+        speed = str(speed)
+        if(len(speed)<4):
+            speed+='0'
+        speed = speed.replace('.', ',')
+        speed +=' m/s'
+        
+        return speed
+    
     def generate_company_description(self):
         fake = Faker(locales)
         return fake.bs().replace('\n', ' ')
     
-    def generate_person_name(self):
+    def generate_person_name(self, prefix=True):
         fake = Faker(locales)
-        return f'{fake.prefix()} {fake.name()}'.replace('\n', '')
+        name = f'{fake.prefix()} {fake.name()}'.replace('\n', '') if prefix else f'{fake.name()}'.replace('\n', '')
+        return name
     
     def generate_telephone_number(self):
         fake = Faker(locales)
@@ -230,6 +289,37 @@ class Template_Dekra(Template):
         
         
         return utility_info
+    
+    def populate_remarks(self, utility_info:dict = None):
+        fake = Faker(locales)
+        paragraph_1 = fake.paragraph(nb_sentences=random.choice([6,7,8]))
+        paragraph_2 = fake.paragraph(nb_sentences=random.choice([2,3,4,5,6]))
+        
+        utility_info['remarks_big']['sentance'] = paragraph_1
+        utility_info['remarks_small']['Bemerkungen'] = paragraph_2
+        return utility_info
+    
+    def populate_prufun_dates(self, unified_dict:dict=None):
+        fake = Faker(locales)
+        dd = random.choice(np.arange(1,32))
+        yyyy = random.choice(np.arange(1990,2024))
+        mm = random.choice(np.arange(1,13))
+        
+        mm_next = mm+1
+        
+        mm = '0'+str(mm) if mm <10 else str(mm)
+        mm_next = '0'+str(mm_next) if mm_next <10 else str(mm_next)
+        
+        prufung_dates = unified_dict['prufung_dates']
+        date_of_prufung = f'{dd}.{mm}.{yyyy}'
+        next_prufung = f'{mm_next}.{yyyy}'
+        
+        prufung_dates['Nächste Prüfung'] = next_prufung
+        prufung_dates['Datum der Prüfung'] = date_of_prufung
+        unified_dict['prufung_dates'] = prufung_dates
+        #print(unified_dict['prufung_dates'])
+        return unified_dict
+        
         
     
     def generate_client_address(self, utility_info:dict = None, line_num:int=4):
@@ -338,6 +428,7 @@ class Template_Dekra(Template):
         unified_dict["technical_specifications"]['Hersteller'] = address
         unified_dict["technical_specifications"]['Tragfähigkeit'] = self.generate_tragfähigkeit()
         unified_dict["technical_specifications"]['Haltestellen / Zugangstellen'] = self.generate_haltstellen()
+        unified_dict["technical_specifications"]["Geschwindigkeit"] = self.generate_geschwindigkeit()
         
         return unified_dict
         
@@ -351,10 +442,14 @@ class Template_Dekra(Template):
             y = self.next_line(y, client_address_config['line_break'])
         return x, y
     
-    def draw_evaluator_address(self, evaluator_address, evaluator_address_config, canvas, x, y, y_temp):
+    def draw_evaluator_address(self, evaluator_address, evaluator_address_config, canvas, x, y, y_temp, position ='left'):
         canvas.setFont(evaluator_address_config['font'], evaluator_address_config['font_size'])
-        start_x_temp = random.choice(np.arange(400,430, 10))
+        if position == 'left':
+            start_x_temp = random.choice(np.arange(400,430, 10))
+        else:
+            start_x_temp = x
         y = y_temp
+        
         bold_flag = 0
         count =0
         for key in evaluator_address.keys():
@@ -364,7 +459,7 @@ class Template_Dekra(Template):
                 y = self.next_line(y, evaluator_address_config['line_break'])
             else:
                 for i,k in enumerate(evaluator_address[key].keys()):
-                    if i==0 and bold_flag == 0:
+                    if i==0 and bold_flag == 0 and position == 'left':
                         bold_flag = 1
                         canvas.setFont(f'{evaluator_address_config["font"]}-Bold', evaluator_address_config['font_size'])
                     else:
@@ -449,8 +544,156 @@ class Template_Dekra(Template):
             else:
                 canvas.drawString(start_x_temp + technical_specifications_config['key-val-spacing'], start_y_temp, str(val))
             start_y_temp = self.next_line(start_y_temp, technical_specifications_config['line-break'])
-            new_lines.append(y)
+            new_lines.append(start_y_temp)
         return x, min(new_lines)
+    
+    def draw_final_result(self, final_result, final_result_config, canvas, x, y):
+        #print(final_result.keys())
+        key = list(final_result.keys())[0]
+        canvas.setFont(final_result_config['font-type-keys'], final_result_config['font_size'])
+        canvas.drawString(x, y, str(key))
+        x +=  final_result_config['key-val-spacing']
+        canvas.drawString(x, y, str(final_result[key]))
+        
+        return x, y
+    
+    
+    def draw_remarks(self, utility_info, canvas, x, y):
+        remarks_big = utility_info['remarks_big']
+        
+        remarks_small = utility_info['remarks_small']
+        
+        remarks_big_config = utility_info['remarks_big_config']
+        remarks_small_config = utility_info['remarks_small_config']
+        remarks_big_config['font_size']-=1
+        remarks_small_config['font_size'] -=1
+        remarks_big_config['line_break']-=2
+        remarks_small_config['line_break'] -=2
+        
+        canvas.setFont(remarks_big_config['font'], remarks_big_config['font_size'])
+        tokens_remarks_big = remarks_big[list(remarks_big.keys())[0]].split(" ")
+        
+        def form_paragraph_list(tokens, char_break):
+            paragraph_list_big = []
+            str = ''
+            sentance_list_temp = []
+            last_token = None
+        
+            ## drawing big remarks
+            for i,token in enumerate(tokens):
+                if last_token is None:
+                    str+=token
+                else:
+                    str += last_token + token
+                    sentance_list_temp.append(token)
+                
+                if len(str) < char_break:
+                    sentance_list_temp.append(token)
+                    if i  == len(tokens) -1:
+                        paragraph_list_big.append(sentance_list_temp) 
+                else:
+                    last_token = token
+                    paragraph_list_big.append(sentance_list_temp)
+                    sentance_list_temp = []
+                    str=''
+                    last_token= None
+            return paragraph_list_big    
+                
+        paragraph_list_big = form_paragraph_list(tokens_remarks_big, 115)
+        for sentance_list in paragraph_list_big:
+            sentance = ' '.join([token for token in sentance_list])
+            canvas.drawString(x, y, sentance)
+            y -= remarks_big_config['line_break']
+        
+        canvas.setFont(remarks_small_config['font-type-keys'], remarks_small_config['font_size'])
+        y -= 4
+        canvas.drawString(x+random.choice(np.arange(230,260, 5)), y, "Nachprüfung nicht erforderlich")
+        y -= 10
+        key_reamarks_small = list(remarks_small.keys())[0]
+        
+        canvas.drawString(x, y, key_reamarks_small)
+        y-=10
+        canvas.setFont(remarks_small_config['font-type-vals'], remarks_small_config['font_size'])
+        tokens_remarks_small = remarks_small[list(remarks_small.keys())[0]].split(" ")
+        
+        paragraph_list_small = form_paragraph_list(tokens_remarks_small, 115)
+        for sentance_list in paragraph_list_small:
+            sentance = ' '.join([token for token in sentance_list])
+            canvas.drawString(x, y, sentance)
+            y -= remarks_small_config['line_break']
+            
+        ## Drawing small_remarks
+        return x, y
+    
+    def draw_prufung_dates(self, utility_info, canvas, x, y):
+        prufung_dates = utility_info['prufung_dates']
+        prufung_dates_config = utility_info['prufung_dates_config']
+        
+        canvas.setFont(prufung_dates_config['font-type-keys'], prufung_dates_config['font_size'])
+        x +=random.choice(np.arange(350,380, 5))
+        x_temp = x
+        canvas.drawString(x, y, 'Nächste Prüfung')
+        x += prufung_dates_config['key-val-spacing']
+        
+        
+        canvas.drawString(x, y, prufung_dates['Nächste Prüfung'])
+        y -= 35
+        canvas.setFont(prufung_dates_config['font-type-vals'], prufung_dates_config['font_size'])
+        canvas.drawString(x_temp, y, 'Datum der Prüfung')
+        x_temp += prufung_dates_config['key-val-spacing']
+        canvas.drawString(x_temp, y, prufung_dates['Datum der Prüfung'])
+        
+        return x_temp, y
+    
+    def generate_random_iban(self):
+        faker = Faker(locales)
+        iban = faker.iban()
+        iban_space = ''
+        for i,c in enumerate(iban):
+            if i%4==0:
+                iban_space+=' '
+            else:
+                iban_space+=c
+        
+        return f'IBAN {iban_space.upper()}'
+    
+    def draw_footer(self,utility_info, canvas, x, y):
+        evaluator_address = {'address' : utility_info['evaluator_address']['address']}
+        #print(utility_info['evaluator_address_config'])
+        utility_info['evaluator_address_config']['font_size'] -=3
+        utility_info['evaluator_address_config']['line_break'] -=2
+        self.draw_evaluator_address(evaluator_address, utility_info['evaluator_address_config'], canvas, self.start_x, y, y, position='right')
+        utility_info = self.generate_evaluator_adrress(utility_info=utility_info)
+        evaluator_address = {'address' : utility_info['evaluator_address']['address']}
+        
+        #evaluator_address['address'].pop('line4')
+        #evaluator_address['address'].pop('line5')
+        evaluator_address['address']['line4'] = 'Bankverbindungen'
+        evaluator_address['address']['line5'] = self.generate_random_company()
+        evaluator_address['address']['line6'] = self.generate_random_iban()
+        evaluator_address['address']['line7'] = self.generate_random_company()
+        evaluator_address['address']['line8'] = self.generate_random_iban()
+        
+        
+        x = x+200
+        #utility_info['evaluator_address_config']['font_size'] -=1
+        self.draw_evaluator_address(evaluator_address, utility_info['evaluator_address_config'], canvas, x, y, y, position='right')
+        
+        x = x+200
+        evaluator_address['address'] = {}
+        evaluator_address['address']['line1'] = 'Vorsitzender des Aufsichtsrates'
+        evaluator_address['address']['line2'] = self.generate_person_name(prefix=False)
+        evaluator_address['address']['line3'] = 'Geschäftsführer:'
+        evaluator_address['address']['line4'] = self.generate_person_name(prefix=False) + ' (Vorsitzender)'
+        evaluator_address['address']['line5'] = self.generate_person_name(prefix=False) 
+        evaluator_address['address']['line6'] = self.generate_person_name(prefix=False) 
+        #utility_info['evaluator_address_config']['font_size'] -=1
+        self.draw_evaluator_address(evaluator_address, utility_info['evaluator_address_config'], canvas, x, y, y, position='right')
+        
+        
+        
+        #canvas.drawString(x, new_line + 10, 'fake bank')
+        
 
     def draw_report(self,header:dict=None, report_name:str='form.pdf', global_keys:dict = None):
         
@@ -458,24 +701,24 @@ class Template_Dekra(Template):
         canvas = c
         canvas.setPageSize(letter)
         canvas.setLineWidth(.3)
-        canvas.setFont('Arial-Bold', 10) 
+        canvas.setFont('Arial-Bold', 8) 
   
         canvas.setFillColor(HexColor(0x000000))
         canvas.drawString(self.start_x,self.start_y, header)  
-        canvas.setFont('Arial', 9)
+        canvas.setFont('Arial', 8)
   
-        new_line = self.next_line(self.start_y, self.line_break)
+        new_line = self.next_line(self.start_y, self.line_break + 20)
   
         canvas.drawString(self.start_x,new_line, file_name)
   
         new_line = self.next_line(new_line, 4)
-        canvas.line(self.start_x, new_line, 600, new_line)
+        canvas.line(self.start_x, new_line, 580, new_line)
   
         ## Section Spacing
-        new_line = self.next_line(new_line, self.section_spacing)
+        new_line = self.next_line(new_line, self.section_spacing+20)
   
         ## Used for evaluator address
-        new_line_temp = new_line + 10
+        new_line_temp = new_line + 4
   
         # Section 1
         ## Client Address
@@ -508,14 +751,36 @@ class Template_Dekra(Template):
         _, new_line = self.draw_test_certificate_results(global_keys['test_certificate_results'], global_keys['test_certificate_results_config'], canvas, self.start_x, new_line)
         new_line = self.next_line(new_line, self.line_break)
         
+        #print(new_line)
         ## Section 6
         canvas.setFont('Arial-Bold', 10)
         canvas.drawString(self.start_x, new_line - random.choice([-3, -4, -5]), 'Technische Angaben')
         new_line = self.next_line(new_line, self.line_break)
         global_keys = self.populate_technical_specifications_fake(unified_dict=global_keys)
         _, new_line = self.draw_technical_specifications(global_keys['technical_specifications'], global_keys['technical_specifications_config'], canvas, self.start_x, new_line)
+        #print(new_line)
         #_, new_line = self.draw_test_certificate_results(test_certificate_results, test_certificate_results_config, canvas, self.start_x, new_line)
-
+        new_line = self.next_line(new_line, self.line_break)
+        #print(new_line)
+        #print('-------')
+        _, new_line = self.draw_final_result(global_keys['final_result'], global_keys['final_result_config'], canvas, self.start_x, new_line)
+        new_line = self.next_line(new_line, self.line_break)
+        
+        utility_info = self.populate_remarks(utility_info=utility_info)
+        _,new_line = self.draw_remarks(utility_info, canvas, self.start_x, new_line)
+        
+        new_line = self.next_line(new_line, self.line_break )
+        global_keys=self.populate_prufun_dates(unified_dict=global_keys)
+        
+        _,new_line = self.draw_prufung_dates(global_keys, canvas, self.start_x, new_line)
+        
+        name_prefix_flag = True if random.choice(np.arange(1,10)) == 1 else False
+        canvas.drawString(self.start_x, new_line, self.generate_person_name(prefix=name_prefix_flag))
+        new_line = self.next_line(new_line, self.section_spacing + 80)
+        
+        
+        self.draw_footer(utility_info, canvas, self.start_x, new_line)
+        
         canvas.save()
         pages = convert_from_path(report_name, 500)
         pages[0].save(f'{report_name[:-4]}.jpg', 'JPEG')
@@ -562,22 +827,22 @@ if __name__=='__main__':
         page_no = page_no)
     #draw_report(header=header, report_name='form.pdf')
 
-    #template1.draw_report(header=header, report_name='form.pdf')
+    template1.draw_report(header=header, report_name='form.pdf')
     #pages = convert_from_path('form.pdf', 500)
     #pages[0].save(f'form.jpg', 'JPEG')
     #template1.draw_report(header=header, report_name='form2.pdf')
     #pages = convert_from_path('form.pdf', 500)
     #pages[0].save(f'form.jpg', 'JPEG')
-    model = LayoutLMv2ForRelationExtraction.from_pretrained("microsoft/layoutxlm-base")
-    tokenizer = AutoTokenizer.from_pretrained("microsoft/layoutxlm-base")
+    #model = LayoutLMv2ForRelationExtraction.from_pretrained("microsoft/layoutxlm-base")
+    #tokenizer = AutoTokenizer.from_pretrained("microsoft/layoutxlm-base")
     #print(f'len(tokenizer) {len(tokenizer)}')
-    tokens, bboxes, image = template1.get_ocr_data(image_path='form2.jpg')
+    #tokens, bboxes, image = template1.get_ocr_data(image_path='form2.jpg')
 
     #print([token for token in tokens if token in set(string.punctuation) and token in (' ', '')])
     #print('------------------------')
     #template1.add_tokens(tokens=tokens)
     #tokens = [token.lower() for token in tokens if token != ' ']
-    tokens, bboxes = template1.preprocess_tokens(tokens=tokens, bboxes=bboxes)
+    #tokens, bboxes = template1.preprocess_tokens(tokens=tokens, bboxes=bboxes)
 
     #tokens = np.load('tokens_temp.npy')
     #bboxes = np.load('bboxes_temp.npy')
@@ -585,8 +850,8 @@ if __name__=='__main__':
     #print(f'len(bboxes) {len(bboxes)}')
     #plt.figure(figsize=(20,10))
     #plt.imshow(image)
-    tokenizer, model = template1.add_tokens_tokenizer(tokens = tokens, tokenizer = tokenizer, model = model)
-    input_ids, bboxes, input_id_map = template1.encode_tokens(tokens=tokens, bboxes=bboxes, tokenizer=tokenizer)
+    #tokenizer, model = template1.add_tokens_tokenizer(tokens = tokens, tokenizer = tokenizer, model = model)
+    #input_ids, bboxes, input_id_map = template1.encode_tokens(tokens=tokens, bboxes=bboxes, tokenizer=tokenizer)
     #tokens, bboxes = template1.preprocess_tokens(tokens= tokens, bboxes= bboxes)
     #print(tokens)
     #print(f'len of tokens {len(tokens)}')
@@ -598,11 +863,11 @@ if __name__=='__main__':
     #print(f'len(tokenizer) {len(tokenizer)}')
     
     #input_ids = tokenizer.encode(text = tokens, boxes = bboxes, is_pretokenized=False)  
-    key_vals_unified = template1.unify_keys_vals(global_keys)
-    labels= template1.label_input_ids(unified_dict=key_vals_unified,tokens = tokens,  bboxes = bboxes, input_ids=input_ids, input_id_map=input_id_map, tokenizer=tokenizer)
+    #key_vals_unified = template1.unify_keys_vals(global_keys)
+    #labels= template1.label_input_ids(unified_dict=key_vals_unified,tokens = tokens,  bboxes = bboxes, input_ids=input_ids, input_id_map=input_id_map, tokenizer=tokenizer)
     #token_group_key, token_group_val, token_group_others = template1.form_token_groups(unified_dict=key_vals_unified, tokens=tokens, bboxes=bboxes)    
-    key_set, val_set, token_map = template1.form_token_groups(unified_dict=key_vals_unified, tokens=tokens, bboxes=bboxes)
-    entities = template1.form_entities(unified_dict=key_vals_unified,tokens = tokens,  bboxes = bboxes, input_ids=input_ids, input_id_map=input_id_map, tokenizer=tokenizer)
+    #key_set, val_set, token_map = template1.form_token_groups(unified_dict=key_vals_unified, tokens=tokens, bboxes=bboxes)
+    #entities = template1.form_entities(unified_dict=key_vals_unified,tokens = tokens,  bboxes = bboxes, input_ids=input_ids, input_id_map=input_id_map, tokenizer=tokenizer)
     
     #for id, label in zip(input_ids, labels):
     #    print(f'{tokenizer.decode(id)}, {label}')

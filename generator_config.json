@@ -1,5 +1,5 @@
 {
-    "num_files":30,
+    "num_files":3,
     "images_dir" : "images",
     "images_resized_dir" : "images_resized",
     "bbox_dir":"bbox",
@@ -7,7 +7,7 @@
     "labels_dir" : "labels",
     "entities_dir" : "entities",
     "relations_dir" : "relations",
-    "type":"train",
+    "type":"validation",
     "clear_all_old_files" : true,
-    "clear_old_files_type": [true, "train"]
+    "clear_old_files_type": [false, "validation"]
 }

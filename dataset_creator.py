@@ -36,17 +36,17 @@ class DatasetGenerator:
         self.clear_old_files_type = clear_old_files_type
         
     def generate_sample(self, model:AutoModel=None, tokenizer:AutoTokenizer=None):
-        start_x = 30
+        start_x = 50
         start_x_temp = start_x
-        start_y = 750
+        start_y = 770
         start_y_temp = start_y
         token_spacing = 100
         line_spacing = 8
         count = 0
         key_spacing = 200
-        header_spacing = 15
-        section_spacing = 30
-        line_break = 15
+        header_spacing = 20
+        section_spacing = 15
+        line_break = 13
         
         header = 'Zugelassene Überwachungsstelle Aufzüge'
         file_name = '20181119-32753-1891960176-100-421500.docx'
@@ -283,7 +283,7 @@ class Custom_Dataset(Dataset):
             relations = pickle.load(f)
         
         id = self.generate_id(idx)
-        features  = {'id': id, 'input_ids': input_ids, 'labels':labels, 'original_image': image, 'image':image_resized, 'entities':entities, 'relations':relations}
+        features  = {'id': id, 'input_ids': input_ids, 'bbox':bbox, 'labels':labels, 'original_image': image, 'image':image_resized, 'entities':entities, 'relations':relations}
         '''Dataset = {
             "features" : {'id': id, 'input_ids': input_ids, 'labels':labels, 'original_image': image, 'image':image_resized, 'entities':entities, 'relations':relations},
             "num_rows" : self.__len__()    
@@ -349,13 +349,80 @@ class DataCollatorForTokenClassification:
 
         return batch
 
+@dataclass
+class DataCollatorForKeyValueExtraction:
+    """
+    Data collator that will dynamically pad the inputs received, as well as the labels.
+
+    Args:
+        tokenizer (:class:`~transformers.PreTrainedTokenizer` or :class:`~transformers.PreTrainedTokenizerFast`):
+            The tokenizer used for encoding the data.
+        padding (:obj:`bool`, :obj:`str` or :class:`~transformers.file_utils.PaddingStrategy`, `optional`, defaults to :obj:`True`):
+            Select a strategy to pad the returned sequences (according to the model's padding side and padding index)
+            among:
+            * :obj:`True` or :obj:`'longest'`: Pad to the longest sequence in the batch (or no padding if only a single
+              sequence if provided).
+            * :obj:`'max_length'`: Pad to a maximum length specified with the argument :obj:`max_length` or to the
+              maximum acceptable input length for the model if that argument is not provided.
+            * :obj:`False` or :obj:`'do_not_pad'` (default): No padding (i.e., can output a batch with sequences of
+              different lengths).
+        max_length (:obj:`int`, `optional`):
+            Maximum length of the returned list and optionally padding length (see above).
+        pad_to_multiple_of (:obj:`int`, `optional`):
+            If set will pad the sequence to a multiple of the provided value.
+            This is especially useful to enable the use of Tensor Cores on NVIDIA hardware with compute capability >=
+            7.5 (Volta).
+        label_pad_token_id (:obj:`int`, `optional`, defaults to -100):
+            The id to use when padding the labels (-100 will be automatically ignore by PyTorch loss functions).
+    """
+
+    feature_extractor: LayoutLMv2FeatureExtractor
+    tokenizer: PreTrainedTokenizerBase
+    padding: Union[bool, str, PaddingStrategy] = True
+    max_length: Optional[int] = None
+    pad_to_multiple_of: Optional[int] = None
+    label_pad_token_id: int = -100
+
+    def __call__(self, features):
+        # prepare image input
+        image = self.feature_extractor([feature["original_image"] for feature in features], return_tensors="pt").pixel_values
+
+        # prepare text input
+        entities = []
+        relations = []
+        for feature in features:
+            del feature["image"]
+            del feature["id"]
+            del feature["labels"]
+            del feature["original_image"]
+            entities.append(feature["entities"])
+            del feature["entities"]
+            relations.append(feature["relations"])
+            del feature["relations"]
+
+        batch = self.tokenizer.pad(
+            features,
+            padding=self.padding,
+            max_length=self.max_length,
+            pad_to_multiple_of=self.pad_to_multiple_of,
+            return_tensors="pt"
+        )
+
+        batch["image"] = image
+        batch["entities"] = entities
+        batch["relations"] = relations
+
+        return batch
+
+
+
 if __name__=='__main__':
     with open('generator_config.json') as f:
         configs = json.load(f)
     
     datasetGenerator = DatasetGenerator(**configs)
     datasetGenerator.generate_Dataset(tokenizer_dir='./tokenizer_added_tokens', model_dir='./model_added_tokens')
-    datasetGenerator.test_gnerator(tokenizer_path='./tokenizer_added_tokens', model_path = './model_added_tokens', file_index = 8)
+    datasetGenerator.test_gnerator(tokenizer_path='./tokenizer_added_tokens', model_path = './model_added_tokens', file_index = 2)
     
     #datasetGenerator.generate_Dataset(tokenizer_dir='./tokenizer_added_tokens', model_dir='./model_added_tokens')
     #datasetGenerator.test_gnerator(tokenizer_path='./tokenizer_added_tokens', model_path = './model_added_tokens', file_index = 1)
@@ -364,23 +431,24 @@ if __name__=='__main__':
     custom_dataset = Custom_Dataset(**configs)
     #print(len(custom_dataset))
     
-    #model = LayoutLMv2ForRelationExtraction.from_pretrained(model_dir)
-    #tokenizer = AutoTokenizer.from_pretrained('./tokenizer_added_tokens')
-    #feature_extractor = LayoutLMv2FeatureExtractor(apply_ocr=True)
+    model = LayoutLMv2ForRelationExtraction.from_pretrained('./model_added_tokens')
+    tokenizer = AutoTokenizer.from_pretrained('./tokenizer_added_tokens')
+    feature_extractor = LayoutLMv2FeatureExtractor(apply_ocr=True)
     
-    #data_collator = DataCollatorForTokenClassification(
-    #feature_extractor,
-    #tokenizer,
-    #pad_to_multiple_of=None,
-    #padding="max_length",
-    #max_length=512,
-    #)
+    data_collator = DataCollatorForTokenClassification(
+    feature_extractor,
+    tokenizer,
+    pad_to_multiple_of=None,
+    padding="max_length",
+    max_length=512,
+    )
     
 
     #dataloader = DataLoader(custom_dataset, batch_size=1, collate_fn=data_collator)
     #for step, i in enumerate(dataloader):
     #    print(i)
     #    print('-------')
+    #    break
 
     
             

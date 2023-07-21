@@ -37,9 +37,25 @@ def unify_keys_vals(dict_):
                 key_2 = str(key_2).lower()
                 unified_dict[key_2] = element.lower()
     return unified_dict
+
+
+
+def normalize_bbox(bbox, width, height):
+    return [
+        int(1000 * (bbox[0] / width)),
+        int(1000 * (bbox[1] / height)),
+        int(1000 * (bbox[2] / width)),
+        int(1000 * (bbox[3] / height)),
+    ]
     
-def get_ocr_data(conf_val:float=40, image_path:str= 'form.jpg'):
-    image = cv2.imread(image_path)
+def get_ocr_data(conf_val:float=25, image_path:str= 'form.jpg'):
+    #image = cv2.imread(image_path)
+    
+    image = Image.open(
+    image_path
+        )
+    width, height = image.size
+    
     results = pytesseract.image_to_data(image, output_type=Output.DICT, lang='deu')
     n_boxes = len(results['level'])
     tokens = []
@@ -50,6 +66,9 @@ def get_ocr_data(conf_val:float=40, image_path:str= 'form.jpg'):
         y = results["top"][i]
         w = results["width"][i]
         h = results["height"][i]
+        
+        x1, y1, x2, y2 = normalize_bbox([x,y,x+w, y+h], width, height) 
+        
     	# extract the OCR text itself along with the confidence of the
 	    # text localization
         text = results["text"][i]
@@ -61,14 +80,16 @@ def get_ocr_data(conf_val:float=40, image_path:str= 'form.jpg'):
         # display the confidence and text to our terminal
         #tokens.append((text, [x + w, y + h]))
             tokens.append(text)
-            bboxes.append([x,y,x+w, y+h])
+            #bboxes.append([x,y,x+w, y+h])
+            bboxes.append([x1,y1,x2,y2])
+            #bboxes.append([xc, yc, wn, hn])
             # strip out non-ASCII text so we can draw the text on the image
 		    # using OpenCV, then draw a bounding box around the text along
 		    # with the text itself
-            text = "".join([c if ord(c) < 128 else "" for c in text]).strip()
-            cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
-            cv2.putText(image, text, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX,
-                    1.2, (0, 0, 255), 3)
+            #text = "".join([c if ord(c) < 128 else "" for c in text]).strip()
+            #cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
+            #cv2.putText(image, text, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX,
+            #        1.2, (0, 0, 255), 3)
     return tokens, bboxes, image
 
 
@@ -130,7 +151,7 @@ def encode_tokens(tokens:list=None, bboxes:list = None, tokenizer : AutoTokenize
                 input_id_map[tokenized_token] = input_id
                 bboxes_tokenized.append(bboxes[i])
     #print(input_id_map) 
-    return input_ids, bboxes_tokenized, input_id_map    
+    return input_ids, bboxes_tokenized, input_id_map 
     
     
 def check_token_presence_within_list(token:str=None, token_list:str=None, key:dict = None):
