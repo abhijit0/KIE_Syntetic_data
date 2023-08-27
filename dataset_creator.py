@@ -222,8 +222,7 @@ class DatasetGenerator:
         if self.path_exist(path = relations_path):
             with open(relations_path, 'rb') as f:
                 relations = pickle.load(f)
-        
-        
+       
         if entities is not None:
             entity_names = []
             #print(entities)
@@ -235,6 +234,7 @@ class DatasetGenerator:
 
         else:
             print('not loaded properly')
+        
             
 class Custom_Dataset(Dataset):
     def __init__(self, images_dir:str=None, images_resized_dir:str=None, bbox_dir:str = None, input_ids_dir :str = None, 
@@ -257,28 +257,41 @@ class Custom_Dataset(Dataset):
     def __len__(self):
         return len(os.listdir(self.images_dir))
     
+    def get_file_index_map(self, path:str=None):
+        paths = os.listdir(path)
+        sorted_paths = sorted(paths)
+        idx_map = {i:sorted_paths[i] for i in range(len(sorted_paths))}
+        return idx_map
+    
     def __getitem__(self, idx):
+        idx_map_image = self.get_file_index_map(path = self.images_dir)
+        idx_map_image_resized = self.get_file_index_map(path = self.images_resized_dir)
+        idx_map_bbox = self.get_file_index_map(path = self.bbox_dir)
+        idx_map_labels = self.get_file_index_map(path = self.labels_dir)
+        idx_map_entities = self.get_file_index_map(path = self.entities_dir)
+        idx_map_realations = self.get_file_index_map(path = self.relations_dir)
+        idx_map_input_ids = self.get_file_index_map(path = self.input_ids_dir)
+
+        image = cv2.imread(f'{self.images_dir}/{idx_map_image[idx]}')
+        image_resized = cv2.imread(f'{self.images_resized_dir}/{idx_map_image_resized[idx]}')
         
-        image = cv2.imread(f'{self.images_dir}/image_{idx}.jpeg')
-        image_resized = cv2.imread(f'{self.images_resized_dir}/image_resized_{idx}.jpeg')
-        
-        bbox_path = f'{self.bbox_dir}/bbox_{idx}.p'
+        bbox_path = f'{self.bbox_dir}/{idx_map_bbox[idx]}'
         with open(bbox_path, 'rb') as f:
             bbox = pickle.load(f)
             
-        input_ids_path = f'{self.input_ids_dir}/input_ids_{idx}.p'
+        input_ids_path = f'{self.input_ids_dir}/{idx_map_input_ids[idx]}'
         with open(input_ids_path, 'rb') as f:
             input_ids = pickle.load(f)
             
-        labels_path = f'{self.labels_dir}/labels_{idx}.p'
+        labels_path = f'{self.labels_dir}/{idx_map_labels[idx]}'
         with open(labels_path, 'rb') as f:
             labels = pickle.load(f)
         
-        entities_path = f'{self.entities_dir}/entities_{idx}.p'
+        entities_path = f'{self.entities_dir}/{idx_map_entities[idx]}'
         with open(entities_path, 'rb') as f:
             entities = pickle.load(f)
         
-        realtions_path = f'{self.relations_dir}/relations_{idx}.p'
+        realtions_path = f'{self.relations_dir}/{idx_map_realations[idx]}'
         with open(realtions_path, 'rb') as f:
             relations = pickle.load(f)
         
@@ -421,13 +434,13 @@ if __name__=='__main__':
         configs = json.load(f)
     
     datasetGenerator = DatasetGenerator(**configs)
-    datasetGenerator.generate_Dataset(tokenizer_dir='./tokenizer_added_tokens', model_dir='./model_added_tokens')
+    #datasetGenerator.generate_Dataset(tokenizer_dir='./tokenizer_added_tokens', model_dir='./model_added_tokens')
+    #datasetGenerator.test_gnerator(tokenizer_path='trained_models/august_23/tokenizer_added_tokens', model_path = './trained_models/august_23/ts_finetuned', file_index = 2)
     datasetGenerator.test_gnerator(tokenizer_path='./tokenizer_added_tokens', model_path = './model_added_tokens', file_index = 2)
-    
     #datasetGenerator.generate_Dataset(tokenizer_dir='./tokenizer_added_tokens', model_dir='./model_added_tokens')
     #datasetGenerator.test_gnerator(tokenizer_path='./tokenizer_added_tokens', model_path = './model_added_tokens', file_index = 1)
     
-    configs = {key:val for key,val in configs.items() if key not in ("num_files", "clear_all_old_files", "clear_old_files_type")}
+    '''configs = {key:val for key,val in configs.items() if key not in ("num_files", "clear_all_old_files", "clear_old_files_type")}
     custom_dataset = Custom_Dataset(**configs)
     #print(len(custom_dataset))
     
@@ -448,7 +461,7 @@ if __name__=='__main__':
     #for step, i in enumerate(dataloader):
     #    print(i)
     #    print('-------')
-    #    break
+    #    break'''
 
     
             

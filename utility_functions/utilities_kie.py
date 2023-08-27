@@ -60,8 +60,9 @@ def get_ocr_data(conf_val:float=25, image_path:str= 'form.jpg'):
     n_boxes = len(results['level'])
     tokens = []
     bboxes = []
-        
+
     for i in range(n_boxes):
+        
         x = results["left"][i]
         y = results["top"][i]
         w = results["width"][i]
@@ -164,17 +165,29 @@ def check_token_presence_within_list(token:str=None, token_list:str=None, key:di
     return flag
 
 def rearrange_token_order(token_list :list =None, token_key_str:str=None, token_indices:list=None):
-    indices = {}
-    for token in token_list:
-        indices[token_key_str.index(token)]= token
+    #indices = {}
+    #for token in token_list:
+    #    indices[token_key_str.index(token)]= token
     
-    sorted_indices = sorted([key for key in indices.keys()])
-    token_indices = {indices[key]:i for i,key in enumerate(sorted_indices)}
+    #sorted_indices = sorted([key for key in indices.keys()])
+    #token_indices_temp = {indices[key]:i for i,key in enumerate(sorted_indices)}
+    token_indices = sorted(token_indices, key = lambda x: x[1])
         
     for token1 in token_list:
         for token2 in token_list:
             if token1 != token2:
-                if token_indices[token1] < token_indices[token2]:
+                #print(f'token_list {token_list}')
+                #print(f'token_indices {token_indices}')
+                #print(f'token1 {token1}')
+                #print(f'token2 {token2}')
+                #print('------')
+                token1_index = [i[1] for i in token_indices if i[0]==token1][0]
+                token2_index = [i[1] for i in token_indices if i[0]==token2][0]
+                #print(token1_index)
+                #print(token2_index)
+                #print('-------')
+                #if token_indices[token1] < token_indices[token2]:
+                if token1_index < token2_index:
                     token_list[token_list.index(token1)], token_list[token_list.index(token2)] = token_list[token_list.index(token2)], token_list[token_list.index(token1)]
     #print(token_list)
     #print('-----')
@@ -184,7 +197,8 @@ def rearrange_token_order(token_list :list =None, token_key_str:str=None, token_
 def post_process_token_groups(key_set:dict=None):
     for key in key_set.keys():
         token_list = key_set[key]
-        token_dict_indices = {token:i for i, token in enumerate(token_list)}
+        #token_dict_indices = {token:i for i, token in enumerate(token_list)}
+        token_tuple_indices = [(token, i) for i, token in enumerate(token_list)]
             
         token_list_sorted = sorted(token_list, key=len, reverse=True)
         #print(token_list_sorted)
@@ -193,7 +207,7 @@ def post_process_token_groups(key_set:dict=None):
             if not check_token_presence_within_list(token=token, token_list=tokens_to_keep, key = key):
                 tokens_to_keep.append(token)
         #print(f'tokens_to_keep {tokens_to_keep}')
-        tokens_rearranged = rearrange_token_order(token_key_str= key, token_list=tokens_to_keep, token_indices = token_dict_indices)
+        tokens_rearranged = rearrange_token_order(token_key_str= key, token_list=tokens_to_keep, token_indices = token_tuple_indices)
             #print(tokens_rearranged)
             #print('----')
         key_set[key] = tokens_rearranged
