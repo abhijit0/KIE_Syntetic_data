@@ -1,5 +1,5 @@
 {
-    "num_files":3,
+    "num_files":6,
     "images_dir" : "images",
     "images_resized_dir" : "images_resized",
     "bbox_dir":"bbox",
@@ -7,7 +7,9 @@
     "labels_dir" : "labels",
     "entities_dir" : "entities",
     "relations_dir" : "relations",
-    "type":"validation",
+    "type":"train",
     "clear_all_old_files" : true,
-    "clear_old_files_type": [false, "validation"]
+    "clear_old_files_type": [false, "validation"],
+    "datasets_init_configs":{"kone": "template_1/init_configs/kone_init.json", "dekra": "template_1/init_configs/dekra_init.json"}
+
 }

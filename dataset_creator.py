@@ -5,8 +5,13 @@ import sys
 
 sys.path.append('./utility_functions/')
 sys.path.append('./template_1/')
+sys.path.append('./template_1/sentances_kone')
+sys.path.append('./template_1/fonts')
+
+
 from utility_functions.utilities_kie import *
 from template_1.template1 import Template_Dekra
+from template_1.template_2_kone import Template_Kone
 import pickle
 import shutil
 from torch.utils.data import Dataset, DataLoader
@@ -22,7 +27,7 @@ from typing import Optional, Union
 
 class DatasetGenerator:
     def __init__(self, num_files:int=None, images_dir:str=None, images_resized_dir:str=None, bbox_dir:str = None, input_ids_dir :str = None, 
-                 labels_dir :str = None, entities_dir :str =None, relations_dir:str = None, type:str=None, clear_all_old_files:bool=None, clear_old_files_type:list=None):
+                 labels_dir :str = None, entities_dir :str =None, relations_dir:str = None, type:str=None, clear_all_old_files:bool=None, clear_old_files_type:list=None, datasets_init_configs:dict=None):
         self.num_files = num_files
         self.images_dir = images_dir
         self.bbox_dir = bbox_dir
@@ -34,41 +39,30 @@ class DatasetGenerator:
         self.type = type
         self.clear_all_old_files = clear_all_old_files
         self.clear_old_files_type = clear_old_files_type
+        self.datasets_init_configs = datasets_init_configs
+        self.type_b = False  ## Only used while generating kone documents
+        #assert (key.lower() for key in self.datasets_init_configs.keys()) in ('kone', 'dekra', 'schindler', 'tuv')
         
-    def generate_sample(self, model:AutoModel=None, tokenizer:AutoTokenizer=None):
-        start_x = 50
-        start_x_temp = start_x
-        start_y = 770
-        start_y_temp = start_y
-        token_spacing = 100
-        line_spacing = 8
-        count = 0
-        key_spacing = 200
-        header_spacing = 20
-        section_spacing = 15
-        line_break = 13
-        
-        header = 'Zugelassene Überwachungsstelle Aufzüge'
-        file_name = '20181119-32753-1891960176-100-421500.docx'
-        report_name = 'form2.pdf'
-        page_no = 'Seite 1 von 1'
-        
-        template1 = Template_Dekra(start_x = start_x,
-            start_y = start_y,
-            token_spacing = token_spacing,
-            line_spacing = line_spacing,
-            key_spacing = key_spacing,
-            header_spacing = header_spacing,
-            section_spacing = section_spacing,
-            line_break = line_break,
-            header = header,
-            file_name = file_name,
-            report_name=report_name,
-            page_no = page_no)
+    def get_dekra_doc(self, init_config:dict=None):
+      
+        template1 = Template_Dekra(**init_config)
         
         global_keys = template1.init_global_keys()
-        global_keys, image = template1.draw_report(header=header, report_name='form2.pdf', global_keys=global_keys)
-        tokens, bboxes, _ = get_ocr_data(image_path='form2.jpg')
+        global_keys, image= template1.draw_report(header=init_config["header"], report_name=init_config["report_name"], global_keys=global_keys)
+        return global_keys, image
+    
+    def get_kone_doc(self, init_config:dict=None):
+        template_kone= Template_Kone(**init_config)
+        if not self.type_b:
+            template_kone.draw_type = '2c'
+        global_keys, image = template_kone.draw_report()
+        return global_keys, image
+        
+    def generate_sample(self, model:AutoModel=None, tokenizer:AutoTokenizer=None, template_configs:dict = None):
+        
+        global_keys, image = template_configs["get_doc_method"](init_config= template_configs["init_configs"])       
+        
+        tokens, bboxes, _ = get_ocr_data(image=image)
         tokens, bboxes = preprocess_tokens(tokens=tokens, bboxes=bboxes)
 
         tokenizer, model = add_tokens_tokenizer(tokens = tokens, tokenizer = tokenizer, model = model)
@@ -78,6 +72,8 @@ class DatasetGenerator:
         #input_ids = sorted(input_ids)
         
         key_vals_unified = unify_keys_vals(global_keys)
+        
+        #key_vals_unified = global_keys
         key_set, val_set, token_map = form_token_groups(unified_dict=key_vals_unified, tokens=tokens, bboxes=bboxes)
         
         labels= label_input_ids(key_set=key_set, val_set=val_set, input_id_map=input_id_map, tokenizer=tokenizer, input_ids=input_ids)
@@ -120,66 +116,85 @@ class DatasetGenerator:
                 tokenizer = AutoTokenizer.from_pretrained(tokenizer_dir)
         return tokenizer, model
     
-    def generate_Dataset(self, target_dir:str='dataset/', tokenizer_dir:str=None, model_dir:str = None):
+    def get_doc_method_mapping(self, key:str=None):
+        with open(self.datasets_init_configs[key]) as f:
+            init_config = json.load(f)
+        
+        get_doc_method_map = {'kone': self.get_kone_doc, 'dekra': self.get_dekra_doc}
+        template_configs = {"get_doc_method":get_doc_method_map[key], "init_configs":init_config}
+        return template_configs
+    
+    def generate_Dataset(self, target_dir:str='dataset/', tokenizer_dir:str=None, model_dir:str = None, ):
         sub_dirs = [self.images_dir, self.images_resized_dir, self.bbox_dir, self.input_ids_dir, self.labels_dir, self.entities_dir, self.relations_dir]
         
         tokenizer, model = self.initialize_tokenizer_model(tokenizer_dir=tokenizer_dir, model_dir=model_dir)
         
         if self.clear_all_old_files:
-            shutil.rmtree('dataset')
-            os.mkdir('dataset')
+            shutil.rmtree(target_dir)
+            os.mkdir(target_dir)
             
         if self.clear_old_files_type is not None and self.clear_old_files_type[0] and not self.clear_all_old_files:
-            shutil.rmtree(f'dataset/{self.clear_old_files_type[1]}')
+            shutil.rmtree(f'{target_dir}/{self.clear_old_files_type[1]}')
         
-        if not os.path.exists(f'dataset/{self.type}'):
-            os.mkdir(f'dataset/{self.type}')
+        if not os.path.exists(f'{target_dir}/{self.type}'):
+            os.mkdir(f'{target_dir}/{self.type}')
         
         for dir in sub_dirs:
-            joined_path= os.path.join(f'dataset/{self.type}', dir)
+            joined_path= os.path.join(f'{target_dir}/{self.type}', dir)
             if not os.path.exists(joined_path):
                 os.mkdir(joined_path)
-                
-        for i in tqdm(range(self.num_files)):
-            image = 0
-            while type(image) is int:
-                image, input_ids, bboxes, labels, entities, relations = self.generate_sample(model=model, tokenizer=tokenizer)
-                
-                if type(image) is not int or type(bboxes) is not int or type(input_ids) is not int or type(labels) is not int or type(entities) is not int or type(relations) is not int:
-                    #print('Invalid OCR extraction skipping the sample')
-                    #continue
-                    image_resized = cv2.resize(image, (224,224))
-                    image_name= os.path.join(f'dataset/{self.type}/{self.images_dir}/image_{i}.jpeg')
-                    images_resized_name= os.path.join(f'dataset/{self.type}/{self.images_resized_dir}/image_{i}.jpeg')
-            
-                    cv2.imwrite(image_name, image)
-                    cv2.imwrite(images_resized_name, image_resized)
-                    ## input_ids
-                    
-                    bbox_file_name = os.path.join(f'dataset/{self.type}/{self.bbox_dir}/bbox_{i}.p')
-                    self.dump_pickle(file_name=bbox_file_name, collection=bboxes)
-                    
-                    input_ids_file_name = os.path.join(f'dataset/{self.type}/{self.input_ids_dir}/input_ids_{i}.p')
-            
-                    self.dump_pickle(file_name=input_ids_file_name, collection=input_ids)
-            
-                    ## entities
-                    entities_file_name = os.path.join(f'dataset/{self.type}/{self.entities_dir}/entities_{i}.p')
-            
-                    self.dump_pickle(file_name=entities_file_name, collection=entities)
-            
-                    ## labels
-                    labels_file_name = os.path.join(f'dataset/{self.type}/{self.labels_dir}/labels_{i}.p')
-            
-                    self.dump_pickle(file_name=labels_file_name, collection=labels)
-            
-                    ## relations
-                    relations_file_name = os.path.join(f'dataset/{self.type}/{self.relations_dir}/relations_{i}.p')
-            
-                    self.dump_pickle(file_name=relations_file_name, collection=relations)
         
-                tokenizer.save_pretrained('./tokenizer_added_tokens')
-                model.save_pretrained('./model_added_tokens')
+        
+        count = 0
+        type_b_index = False
+        for (key, val) in self.datasets_init_configs.items():
+            print(f'Generating dataset for {key}')       
+            for i in tqdm(range(self.num_files)):
+                image = 0
+                while type(image) is int:
+                    template_config = self.get_doc_method_mapping(key=key)
+                    
+                    if key == 'kone' and i>=self.num_files//2:
+                        self.type_b = True
+                    
+                    image, input_ids, bboxes, labels, entities, relations = self.generate_sample(model=model, tokenizer=tokenizer, template_configs=template_config)
+                
+                    if type(image) is not int or type(bboxes) is not int or type(input_ids) is not int or type(labels) is not int or type(entities) is not int or type(relations) is not int:
+                        #print('Invalid OCR extraction skipping the sample')
+                        #continue
+                        image_resized = cv2.resize(image, (224,224))
+                        image_name= os.path.join(f'{target_dir}/{self.type}/{self.images_dir}/image_{count + i}.jpeg')
+                        images_resized_name= os.path.join(f'{target_dir}/{self.type}/{self.images_resized_dir}/image_{count +i}.jpeg')
+            
+                        cv2.imwrite(image_name, image)
+                        cv2.imwrite(images_resized_name, image_resized)
+                        ## input_ids
+                    
+                        bbox_file_name = os.path.join(f'{target_dir}/{self.type}/{self.bbox_dir}/bbox_{count + i}.p')
+                        self.dump_pickle(file_name=bbox_file_name, collection=bboxes)
+                    
+                        input_ids_file_name = os.path.join(f'{target_dir}/{self.type}/{self.input_ids_dir}/input_ids_{count + i}.p')
+            
+                        self.dump_pickle(file_name=input_ids_file_name, collection=input_ids)
+            
+                        ## entities
+                        entities_file_name = os.path.join(f'{target_dir}/{self.type}/{self.entities_dir}/entities_{count+i}.p')
+            
+                        self.dump_pickle(file_name=entities_file_name, collection=entities)
+            
+                        ## labels
+                        labels_file_name = os.path.join(f'{target_dir}/{self.type}/{self.labels_dir}/labels_{count + i}.p')
+            
+                        self.dump_pickle(file_name=labels_file_name, collection=labels)
+            
+                        ## relations
+                        relations_file_name = os.path.join(f'{target_dir}/{self.type}/{self.relations_dir}/relations_{count +i}.p')
+            
+                        self.dump_pickle(file_name=relations_file_name, collection=relations)
+            count += self.num_files
+        
+        tokenizer.save_pretrained('./tokenizer_added_tokens')
+        model.save_pretrained('./model_added_tokens')
     
     def path_exist(self, path:str=None):
         return os.path.exists(path)    
@@ -434,13 +449,13 @@ if __name__=='__main__':
         configs = json.load(f)
     
     datasetGenerator = DatasetGenerator(**configs)
-    #datasetGenerator.generate_Dataset(tokenizer_dir='./tokenizer_added_tokens', model_dir='./model_added_tokens')
+    datasetGenerator.generate_Dataset(tokenizer_dir='./tokenizer_added_tokens', model_dir='./model_added_tokens')
     #datasetGenerator.test_gnerator(tokenizer_path='trained_models/august_23/tokenizer_added_tokens', model_path = './trained_models/august_23/ts_finetuned', file_index = 2)
     datasetGenerator.test_gnerator(tokenizer_path='./tokenizer_added_tokens', model_path = './model_added_tokens', file_index = 2)
     #datasetGenerator.generate_Dataset(tokenizer_dir='./tokenizer_added_tokens', model_dir='./model_added_tokens')
     #datasetGenerator.test_gnerator(tokenizer_path='./tokenizer_added_tokens', model_path = './model_added_tokens', file_index = 1)
     
-    '''configs = {key:val for key,val in configs.items() if key not in ("num_files", "clear_all_old_files", "clear_old_files_type")}
+    configs = {key:val for key,val in configs.items() if key not in ("num_files", "clear_all_old_files", "clear_old_files_type", "datasets_init_configs")}
     custom_dataset = Custom_Dataset(**configs)
     #print(len(custom_dataset))
     

@@ -1,0 +1,469 @@
+sentance_id>sentance
+0>BI Basis Inspektion: Kontrolle des Fahrverhaltens bei der Auf- & Abwärtsfahrt inklusive der Bündigkeit;
+1>Überprüfung der Türfunktionen, der Bedienelemente und des Notrufs;
+2>Kontrolle des Kabineninnenraumes. 
+3>Ebenfalls eine Sichtkontrolle der Schachtgrube.
+4>SI Signalisations-Modul: Kontrolle, Überprüfung und ggf.
+5>Reinigung der Anzeigen sowie den Tastern und Schaltern in jeder Etage und in der Aufzugskabine.
+6>BI Basis Inspektion: Kontrolle des Fahrverhaltens bei der Auf- & Abwärtsfahrt inklusive der Bündigkeit;
+7>Überprüfung der Türfunktionen, der Bedienelemente und des Notrufs;
+8>Kontrolle des Kabineninnenraumes. 
+9>Ebenfalls eine Sichtkontrolle der Schachtgrube.
+10>SI Signalisations-Modul: Kontrolle, Überprüfung und ggf.
+11>Reinigung der Anzeigen sowie den Tastern und Schaltern in jeder Etage und in der Aufzugskabine.
+12>BI Basis Inspektion: Kontrolle des Fahrverhaltens bei der Auf- & Abwärtsfahrt inklusive der Bündigkeit;
+13>Überprüfung der Türfunktionen, der Bedienelemente und des Notrufs;
+14>Kontrolle des Kabineninnenraumes.
+15>Ebenfalls eine Sichtkontrolle der Schachtgrube.
+16>SM Schacht-Modul: Kontrolle, Überprüfung des gesamten Aufzugsschachts inklusive der sich in der Grube befindlichen Komponenten.
+17>(Umlenkrollen, Seilbefestigungen, Hängekabel, Endschalter, Führungsschienen und Führungsschuhe, Rollenführung, Gegengewicht, Fangvorrichtung, Not-Aus-Schalter, Puffer).
+18>Ggf. Reinigung der betriebsbedingten Verschmutzung.
+19>AM Antriebs-Modul: Kontrolle, Überprüfung und ggf.
+20>Reinigung der Antriebskomponenten des Aufzuges je nach Aufzugstyp.
+21>(Bremsen, Tacho, Treibscheibe, Tragseile, Getriebe, Motor, Geschwindigkeitsbegrenzer, Lastwiegeeinrichtung, Ölstand & Behälter, Dichtungen, Steuerblock,Schlauch-& Rohrleitungen) EM Steuerungs-Modul: Kontrolle, Überprüfung und ggf.
+22>Reinigung der Komponenten im Schaltschrank (Schütze/Relais, Kondensatoren, Steckverbindung & Platinen, Lastwiegeeinrichtung, Motorschutz/Kaltleiter/ Laufzeitüberwachung, Sicherungen, Fahrtenzähler, Bündigkeitsanzeige, Akkus/Sprechverbindungen) SI Signalisations-Modul: Kontrolle, Überprüfung und ggf.
+23>Reinigung der Anzeigen sowie den Tastern und Schaltern in jeder Etage und in der Aufzugskabine.
+24>BI Basis Inspektion: Kontrolle des Fahrverhaltens bei der Auf- & Abwärtsfahrt inklusive der Bündigkeit;
+25>Überprüfung der Türfunktionen, der Bedienelemente und des Notrufs;
+26>Kontrolle desKabineninnenraumes. Ebenfalls eine Sichtkontrolle der Schachtgrube.
+27>SM Schacht-Modul: Kontrolle, Überprüfung des gesamten Aufzugsschachts inklusive der sich in der Grube befindlichen Komponenten.
+28>(Umlenkrollen, Seilbefestigungen, Hängekabel, Endschalter, Führungsschienen und Führungsschuhe, Rollenführung, Gegengewicht, Fangvorrichtung, Not-Aus-Schalter, Puffer).
+29>Ggf. Reinigung der betriebsbedingten Verschmutzung.
+30>AM Antriebs-Modul: Kontrolle, Überprüfung und ggf.
+31>Reinigung der Antriebskomponenten des Aufzuges je nach Aufzugstyp.
+32>(Bremsen, Tacho, Treibscheibe, Tragseile, Getriebe, Motor, Geschwindigkeitsbegrenzer, Lastwiegeeinrichtung, Ölstand & Behälter, Dichtungen, Steuerblock, Schlauch-& Rohrleitungen) EM Steuerungs-Modul: Kontrolle, Überprüfung und ggf.
+33>Reinigung der Komponenten im Schaltschrank (Schütze/Relais, Kondensatoren, Steckverbindung & Platinen, Lastwiegeeinrichtung, Motorschutz/Kaltleiter/ Laufzeitüberwachung, Sicherungen, Fahrtenzähler, Bündigkeitsanzeige, Akkus/Sprechverbindungen) SI Signalisations-Modul: Kontrolle, Überprüfung und ggf.
+34>Reinigung der Anzeigen sowie den Tastern und Schaltern in jeder Etage und in der Aufzugskabine.
+35>BI Basis Inspektion: Kontrolle des Fahrverhaltens bei der Auf- & Abwärtsfahrt inklusive der
+Bündigkeit;
+36>Überprüfung der Türfunktionen, der Bedienelemente und des Notrufs;
+37>Kontrolle des Kabineninnenraumes.
+38>Ebenfalls eine Sichtkontrolle der Schachtgrube.
+39>SI Signalisations-Modul: Kontrolle, Überprüfung und ggf.
+40Reinigung der Anzeigen sowie den Tastern und Schaltern in jeder Etage und in der Aufzugskabine.
+40>BI Basis Inspektion: Kontrolle des Fahrverhaltens bei der Auf- & Abwärtsfahrt inklusive der Bündigkeit;
+41>Überprüfung der Türfunktionen, der Bedienelemente und des Notrufs;
+42>Kontrolle des Kabineninnenraumes.
+43>Ebenfalls eine Sichtkontrolle der Schachtgrube.
+44>SI Signalisations-Modul: Kontrolle, Überprüfung und ggf.
+45>Reinigung der Anzeigen sowie den Tastern und Schaltern in jeder Etage und in der Aufzugskabine.
+46>BI Basis Inspektion: Kontrolle des Fahrverhaltens bei der Auf- & Abwärtsfahrt inklusive der Bündigkeit;
+47>Überprüfung der Türfunktionen, der Bedienelemente und des Notrufs;
+48>Kontrolle des Kabineninnenraumes.
+49>Ebenfalls eine Sichtkontrolle der Schachtgrube
+50>SI Signalisations-Modul: Kontrolle, Überprüfung und ggf.
+51>Reinigung der Anzeigen sowie den Tastern und Schaltern in jeder Etage und in der Aufzugskabine.
+52>WS:Wartungspaket Schachtentrauchung Prüfung und Reinigung aller gemäß Herstellerangaben zu prüfenden Komponenten des Schachtenrauchungssystems (z.B. Filter. etc)
+53>WS:Wartungspaket Schachtentrauchung Prüfung und Reinigung aller gemäß Herstellerangaben zu prüfenden Komponenten des Schachtenrauchungssystems (z.B. Filter. etc)
+54>Akku NR erneuern
+55>BI Basis Inspektion: Kontrolle des Fahrverhaltens bei der Auf- & Abwärtsfahrt inklusive der Bündigkeit;
+56>Überprüfung der Türfunktionen, der Bedienelemente und des Notrufs;
+57>Kontrolle des Kabineninnenraumes.
+58>Ebenfalls eine Sichtkontrolle der Schachtgrube.
+59>SI Signalisations-Modul: Kontrolle, Überprüfung und ggf.
+60>Reinigung der Anzeigen sowie den Tastern und Schaltern in jeder Etage und in der Aufzugskabine.
+61>BI Basis Inspektion: Kontrolle des Fahrverhaltens bei der Auf- & Abwärtsfahrt inklusive der Bündigkeit;
+62>Überprüfung der Türfunktionen, der Bedienelemente und des Notrufs;
+63>Kontrolle des Kabineninnenraumes.
+64>Ebenfalls eine Sichtkontrolle der Schachtgrube.
+65>SI Signalisations-Modul: Kontrolle, Überprüfung und ggf.
+66>Reinigung der Anzeigen sowie den Tastern und Schaltern in jeder Etage und in der Aufzugskabine.
+67>BI Basis Inspektion: Kontrolle des Fahrverhaltens bei der Auf- & Abwärtsfahrt inklusive der Bündigkeit;
+68>Überprüfung der Türfunktionen, der Bedienelemente und des Notrufs;
+69>Kontrolle des Kabineninnenraumes.
+70>Ebenfalls eine Sichtkontrolle der Schachtgrube.
+71>SI Signalisations-Modul: Kontrolle, Überprüfung und ggf.
+72>Reinigung der Anzeigen sowie den Tastern und Schaltern in jeder Etage und in der Aufzugskabine.
+73>BI Basis Inspektion: Kontrolle des Fahrverhaltens bei der Auf- & Abwärtsfahrt inklusive der Bündigkeit;
+74>Überprüfung der Türfunktionen, der Bedienelemente und des Notrufs;
+75>Kontrolle des Kabineninnenraumes.
+75>Ebenfalls eine Sichtkontrolle der Schachtgrube.
+76>SI Signalisations-Modul: Kontrolle, Überprüfung und ggf.
+77>Reinigung der Anzeigen sowie den Tastern und Schaltern in jeder Etage und in der Aufzugskabine.
+78>BM Basis-Modul: Kontrolle des Fahrverhaltens bei der Auf- & Abwärtsfahrt inklusive der Bündigkeit;
+79>Durchführung einer Schachtinspektion inkl.
+80>aller Türen und der sich im Schacht befindlichen Elemente, der Schachtgrube sowie des Antriebs- und Bremssystems;
+81>Überprüfung der Notrufverbindung, aller Bedienelemente, des Kabineninnenraumes und der Notbeleuchtung.
+82>TA Türantriebs-Modul: Kontrolle, Überprüfung und ggf.
+83>Reinigung der Kabinenabschlusstüren (Türblätter, Spaltmaß, Rollen, Laufschienen & Schwelle, Verriegelung, Lichtschranke, Riegelmagnet, Türkontakte, Mechanik & elektrische Einrichtung) ST Schachttür-Modul: Kontrolle, Überprüfung und ggf.
+84>Reinigung der Schachtabschlusstüren (Türblätter, Mechanik, Anschläge, Laufschienen & Schwellen, Notentriegelung, Türverriegelung /
+Kontakte, Dämpfer, Riegelmagnet/-Kurve, Glasscheiben)
+85>BI Basis Inspektion: Kontrolle des Fahrverhaltens bei der Auf- & Abwärtsfahrt inklusive der Bündigkeit;
+86>Überprüfung der Türfunktionen, der Bedienelemente und des Notrufs;
+87>Kontrolle des Kabineninnenraumes.
+88>Ebenfalls eine Sichtkontrolle der Schachtgrube.
+89>SI Signalisations-Modul: Kontrolle, Überprüfung und ggf.
+90>Reinigung der Anzeigen sowie den Tastern und Schaltern in jeder Etage und in der Aufzugskabine.
+91>BI Basis Inspektion: Kontrolle des Fahrverhaltens bei der Auf- & Abwärtsfahrt inklusive der Bündigkeit;
+92>Überprüfung der Türfunktionen, der Bedienelemente und des Notrufs;
+93>Kontrolle des Kabineninnenraumes.
+94>Ebenfalls eine Sichtkontrolle der Schachtgrube.
+95>SI Signalisations-Modul: Kontrolle, Überprüfung und ggf.
+96>Reinigung der Anzeigen sowie den Tastern und Schaltern in jeder Etage und in der Aufzugskabine.
+97>BI Basis Inspektion: Kontrolle des Fahrverhaltens bei der Auf- & Abwärtsfahrt inklusive der Bündigkeit;
+98>Überprüfung der Türfunktionen, der Bedienelemente und des Notrufs;
+99>Kontrolle des Kabineninnenraumes.
+100>Ebenfalls eine Sichtkontrolle der Schachtgrube.
+101>SI Signalisations-Modul: Kontrolle, Überprüfung und ggf.
+102>Reinigung der Anzeigen sowie den Tastern und Schaltern in jeder Etage und in der Aufzugskabine.
+103>BM Basis-Modul: Kontrolle des Fahrverhaltens bei der Auf- & Abwärtsfahrt inklusive der Bündigkeit;
+104>Durchführung einer Schachtinspektion inkl.
+105>aller Türen und der sich im Schacht befindlichen Elemente, der Schachtgrube sowie des Antriebs- und Bremssystems;
+106>Überprüfung der Notrufverbindung, aller Bedienelemente, des Kabineninnenraumes und der Notbeleuchtung.
+107>TA Türantriebs-Modul: Kontrolle, Überprüfung und ggf.
+108>Reinigung der Kabinenabschlusstüren (Türblätter, Spaltmaß, Rollen, Laufschienen & Schwelle, Verriegelung, Lichtschranke, Riegelmagnet, Türkontakte, Mechanik & elektrische Einrichtung) ST Schachttür-Modul: Kontrolle, Überprüfung und ggf.
+109>Reinigung der Schachtabschlusstüren (Türblätter, Mechanik, Anschläge, Laufschienen & Schwellen, Notentriegelung, Türverriegelung /
+Kontakte, Dämpfer, Riegelmagnet/-Kurve, Glasscheiben)
+110>BI Basis Inspektion: Kontrolle des Fahrverhaltens bei der Auf- & Abwärtsfahrt inklusive der Bündigkeit;
+111>Überprüfung der Türfunktionen, der Bedienelemente und des Notrufs;
+112>Kontrolle des Kabineninnenraumes.
+113>Ebenfalls eine Sichtkontrolle der Schachtgrube.
+114>SM Schacht-Modul: Kontrolle, Überprüfung des gesamten Aufzugsschachts inklusive der sich in der Grube befindlichen Komponenten.
+115>(Umlenkrollen, Seilbefestigungen, Hängekabel, Endschalter, Führungsschienen und Führungsschuhe, Rollenführung, Gegengewicht, Fangvorrichtung, Not-Aus-Schalter, Puffer).
+116>Ggf. Reinigung der betriebsbedingten Verschmutzung.
+117>AM Antriebs-Modul: Kontrolle, Überprüfung und ggf.
+118>Reinigung der Antriebskomponenten des Aufzuges je nach Aufzugstyp.
+119>(Bremsen, Tacho, Treibscheibe, Tragseile, Getriebe, Motor, Geschwindigkeitsbegrenzer, Lastwiegeeinrichtung, Ölstand & Behälter, Dichtungen, Steuerblock, Schlauch-& Rohrleitungen) EM Steuerungs-Modul: Kontrolle, Überprüfung und ggf. Reinigung der Komponenten im Schaltschrank (Schütze/Relais, Kondensatoren, Steckverbindung & Platinen, Lastwiegeeinrichtung, Motorschutz/Kaltleiter/ Laufzeitüberwachung, Sicherungen, Fahrtenzähler, Bündigkeitsanzeige, Akkus/Sprechverbindungen) SI Signalisations-Modul: Kontrolle, Überprüfung und ggf.
+120>Reinigung der Anzeigen sowie den Tastern und Schaltern in jeder Etage und in der Aufzugskabine.
+121>BI Basis Inspektion: Kontrolle des Fahrverhaltens bei der Auf- & Abwärtsfahrt inklusive der Bündigkeit;
+122>Überprüfung der Türfunktionen, der Bedienelemente und des Notrufs;
+123>Kontrolle des Kabineninnenraumes.
+124>Ebenfalls eine Sichtkontrolle der Schachtgrube.
+125>SM Schacht-Modul: Kontrolle, Überprüfung des gesamten Aufzugsschachts inklusive der sich in der Grube befindlichen Komponenten.
+126>(Umlenkrollen, Seilbefestigungen, Hängekabel, Endschalter, Führungsschienen und Führungsschuhe, Rollenführung, Gegengewicht, Fangvorrichtung, Not-Aus-Schalter, Puffer).
+127>Ggf. Reinigung der betriebsbedingten Verschmutzung.
+128>AM Antriebs-Modul: Kontrolle, Überprüfung und ggf.
+129>Reinigung der Antriebskomponenten des Aufzuges je nach Aufzugstyp.
+130>(Bremsen, Tacho, Treibscheibe, Tragseile, Getriebe, Motor, Geschwindigkeitsbegrenzer, Lastwiegeeinrichtung, Ölstand & Behälter, Dichtungen, Steuerblock, Schlauch-& Rohrleitungen) EM Steuerungs-Modul: Kontrolle, Überprüfung und ggf. Reinigung der Komponenten im Schaltschrank (Schütze/Relais, Kondensatoren, Steckverbindung & Platinen, Lastwiegeeinrichtung, Motorschutz/Kaltleiter/ Laufzeitüberwachung, Sicherungen, Fahrtenzähler, Bündigkeitsanzeige, Akkus/Sprechverbindungen) SI Signalisations-Modul: Kontrolle, Überprüfung und ggf.
+131>Reinigung der Anzeigen sowie den Tastern und Schaltern in jeder Etage und in der Aufzugskabine.
+132>BM Basis-Modul: Kontrolle des Fahrverhaltens bei der Auf- & Abwärtsfahrt inklusive der Bündigkeit;
+133>Durchführung einer Schachtinspektion inkl.
+134>aller Türen und der sich im Schacht befindlichen Elemente, der Schachtgrube sowie des Antriebs- und Bremssystems;
+135>Überprüfung der Notrufverbindung, aller Bedienelemente, des Kabineninnenraumes und der Notbeleuchtung.
+136>TA Türantriebs-Modul: Kontrolle, Überprüfung und ggf. Reinigung der Kabinenabschlusstüren (Türblätter, Spaltmaß, Rollen, Laufschienen & Schwelle, Verriegelung, Lichtschranke, Riegelmagnet, Türkontakte, Mechanik & elektrische Einrichtung) ST Schachttür-Modul: Kontrolle, Überprüfung und ggf.
+137>Reinigung der Schachtabschlusstüren (Türblätter, Mechanik, Anschläge, Laufschienen & Schwellen, Notentriegelung, Türverriegelung / Kontakte, Dämpfer, Riegelmagnet/-Kurve, Glasscheiben) MX: MX Check
+138>BI Basis Inspektion: Kontrolle des Fahrverhaltens bei der Auf- & Abwärtsfahrt inklusive der Bündigkeit;
+139>Überprüfung der Türfunktionen, der Bedienelemente und des Notrufs;
+140>Kontrolle des Kabineninnenraumes.
+141>Ebenfalls eine Sichtkontrolle der Schachtgrube.
+142>SI Signalisations-Modul: Kontrolle, Überprüfung und ggf.
+143>Reinigung der Anzeigen sowie den Tastern und Schaltern in jeder Etage und in der Aufzugskabine.
+144>BI Basis Inspektion: Kontrolle des Fahrverhaltens bei der Auf- & Abwärtsfahrt inklusive der Bündigkeit;
+145>Überprüfung der Türfunktionen, der Bedienelemente und des Notrufs;
+146>Kontrolle des Kabineninnenraumes.
+147>Ebenfalls eine Sichtkontrolle der Schachtgrube.
+148>SI Signalisations-Modul: Kontrolle, Überprüfung und ggf.
+149>Reinigung der Anzeigen sowie den Tastern und Schaltern in jeder Etage und in der Aufzugskabine.
+150>BI Basis Inspektion: Kontrolle des Fahrverhaltens bei der Auf- & Abwärtsfahrt inklusive der Bündigkeit;
+151>Überprüfung der Türfunktionen, der Bedienelemente und des Notrufs;
+152>Kontrolle des Kabineninnenraumes.
+153>Ebenfalls eine Sichtkontrolle der Schachtgrube.
+154>SI Signalisations-Modul: Kontrolle, Überprüfung und ggf.
+155>Reinigung der Anzeigen sowie den Tastern und Schaltern in jeder Etage und in der Aufzugskabine.
+156>BI Basis Inspektion: Kontrolle des Fahrverhaltens bei der Auf- & Abwärtsfahrt inklusive der Bündigkeit;
+157>Überprüfung der Türfunktionen, der Bedienelemente und des Notrufs;
+158>Kontrolle des Kabineninnenraumes.
+159>Ebenfalls eine Sichtkontrolle der Schachtgrube.
+160>SI Signalisations-Modul: Kontrolle, Überprüfung und ggf.
+161>Reinigung der Anzeigen sowie den Tastern und Schaltern in jeder Etage und in der Aufzugskabine.
+162>BI Basis Inspektion: Kontrolle des Fahrverhaltens bei der Auf- & Abwärtsfahrt inklusive der Bündigkeit;
+163>Überprüfung der Türfunktionen, der Bedienelemente und des Notrufs;
+164>Kontrolle des Kabineninnenraumes.
+165>Ebenfalls eine Sichtkontrolle der Schachtgrube.
+166>SI Signalisations-Modul: Kontrolle, Überprüfung und ggf.
+167>Reinigung der Anzeigen sowie den Tastern und Schaltern in jeder Etage und in der Aufzugskabine.
+168>BI Basis Inspektion: Kontrolle des Fahrverhaltens bei der Auf- & Abwärtsfahrt inklusive der Bündigkeit;
+169>Überprüfung der Türfunktionen, der Bedienelemente und des Notrufs;
+170>Kontrolle des Kabineninnenraumes.
+171>Ebenfalls eine Sichtkontrolle der Schachtgrube.
+172>SI Signalisations-Modul: Kontrolle, Überprüfung und ggf.
+173>Reinigung der Anzeigen sowie den Tastern und Schaltern in jeder Etage und in der Aufzugskabine.
+174>BI Basis Inspektion: Kontrolle des Fahrverhaltens bei der Auf- & Abwärtsfahrt inklusive der Bündigkeit;
+175>Überprüfung der Türfunktionen, der Bedienelemente und des Notrufs;
+176>Kontrolle des Kabineninnenraumes.
+177>Ebenfalls eine Sichtkontrolle der Schachtgrube.
+178>SI Signalisations-Modul: Kontrolle, Überprüfung und ggf.
+179>Reinigung der Anzeigen sowie den Tastern und Schaltern in jeder Etage und in der Aufzugskabine.
+180>BI Basis Inspektion: Kontrolle des Fahrverhaltens bei der Auf- & Abwärtsfahrt inklusive der Bündigkeit;
+181>Überprüfung der Türfunktionen, der Bedienelemente und des Notrufs;
+182>Kontrolle des Kabineninnenraumes.
+183>Ebenfalls eine Sichtkontrolle der Schachtgrube.
+184>SM Schacht-Modul: Kontrolle, Überprüfung des gesamten Aufzugsschachts inklusive der sich in der Grube befindlichen Komponenten.
+185>(Umlenkrollen, Seilbefestigungen, Hängekabel, Endschalter, Führungsschienen und Führungsschuhe, Rollenführung, Gegengewicht, Fangvorrichtung, Not-Aus-Schalter, Puffer).
+186>Ggf. Reinigung der betriebsbedingten Verschmutzung.
+187>AM Antriebs-Modul: Kontrolle, Überprüfung und ggf.
+188>Reinigung der Antriebskomponenten des Aufzuges je nach Aufzugstyp.
+189>(Bremsen, Tacho, Treibscheibe, Tragseile, Getriebe, Motor, Geschwindigkeitsbegrenzer, Lastwiegeeinrichtung, Ölstand & Behälter, Dichtungen, Steuerblock, Schlauch-& Rohrleitungen) EM Steuerungs-Modul: Kontrolle, Überprüfung und ggf.
+190>Reinigung der Komponenten im Schaltschrank (Schütze/Relais, Kondensatoren, Steckverbindung & Platinen, Lastwiegeeinrichtung, Motorschutz/Kaltleiter/ Laufzeitüberwachung, Sicherungen, Fahrtenzähler, Bündigkeitsanzeige, Akkus/Sprechverbindungen) SI Signalisations-Modul: Kontrolle, Überprüfung und ggf.
+191>Reinigung der Anzeigen sowie den Tastern und Schaltern in jeder Etage und in der Aufzugskabine.
+192>BI Basis Inspektion: Kontrolle des Fahrverhaltens bei der Auf- & Abwärtsfahrt inklusive der Bündigkeit;
+193>Überprüfung der Türfunktionen, der Bedienelemente und des Notrufs;
+194>Kontrolle des Kabineninnenraumes.
+195>Ebenfalls eine Sichtkontrolle der Schachtgrube.
+196>SI Signalisations-Modul: Kontrolle, Überprüfung und ggf.
+197>Reinigung der Anzeigen sowie den Tastern und Schaltern in jeder Etage und in der Aufzugskabine.
+198>BI Basis Inspektion: Kontrolle des Fahrverhaltens bei der Auf- & Abwärtsfahrt inklusive der Bündigkeit;
+199>Überprüfung der Türfunktionen, der Bedienelemente und des Notrufs;
+200>Kontrolle des Kabineninnenraumes.
+200>Ebenfalls eine Sichtkontrolle der Schachtgrube.
+201>SI Signalisations-Modul: Kontrolle, Überprüfung und ggf.
+202>Reinigung der Anzeigen sowie den Tastern und Schaltern in jeder Etage und in der Aufzugskabine.
+203>BI Basis Inspektion: Kontrolle des Fahrverhaltens bei der Auf- & Abwärtsfahrt inklusive der Bündigkeit;
+204>Überprüfung der Türfunktionen, der Bedienelemente und des Notrufs;
+205>Kontrolle des Kabineninnenraumes.
+206>Ebenfalls eine Sichtkontrolle der Schachtgrube.
+207>SI Signalisations-Modul: Kontrolle, Überprüfung und ggf.
+208>Reinigung der Anzeigen sowie den Tastern und Schaltern in jeder Etage und in der Aufzugskabine.
+209>BI Basis Inspektion: Kontrolle des Fahrverhaltens bei der Auf- & Abwärtsfahrt inklusive der Bündigkeit;
+210>Überprüfung der Türfunktionen, der Bedienelemente und des Notrufs;
+211>Kontrolle des Kabineninnenraumes.
+212>Ebenfalls eine Sichtkontrolle der Schachtgrube.
+213>SI Signalisations-Modul: Kontrolle, Überprüfung und ggf.
+214>Reinigung der Anzeigen sowie den Tastern und Schaltern in jeder Etage und in der Aufzugskabine.
+215>BI Basis Inspektion: Kontrolle des Fahrverhaltens bei der Auf- & Abwärtsfahrt inklusive der Bündigkeit;
+216>Überprüfung der Türfunktionen, der Bedienelemente und des Notrufs;
+217>Kontrolle des Kabineninnenraumes.
+218>Ebenfalls eine Sichtkontrolle der Schachtgrube.
+219>SM Schacht-Modul: Kontrolle, Überprüfung des gesamten Aufzugsschachts inklusive der sich in der Grube befindlichen Komponenten.
+220>(Umlenkrollen, Seilbefestigungen, Hängekabel, Endschalter, Führungsschienen und Führungsschuhe, Rollenführung, Gegengewicht, Fangvorrichtung, Not-Aus-Schalter, Puffer).
+221>Ggf. Reinigung der betriebsbedingten Verschmutzung.
+222>AM Antriebs-Modul: Kontrolle, Überprüfung und ggf.
+223>Reinigung der Antriebskomponenten des Aufzuges je nach Aufzugstyp.(Bremsen, Tacho, Treibscheibe, Tragseile, Getriebe, Motor, Geschwindigkeitsbegrenzer, Lastwiegeeinrichtung, Ölstand & Behälter, Dichtungen, Steuerblock, Schlauch-& Rohrleitungen) EM Steuerungs-Modul: Kontrolle, Überprüfung und ggf.
+224>Reinigung der Komponenten im Schaltschrank (Schütze/Relais, Kondensatoren, Steckverbindung & Platinen, Lastwiegeeinrichtung, Motorschutz/Kaltleiter/ Laufzeitüberwachung, Sicherungen, Fahrtenzähler, Bündigkeitsanzeige, Akkus/Sprechverbindungen) SI Signalisations-Modul: Kontrolle, Überprüfung und ggf.
+225>Reinigung der Anzeigen sowie den Tastern und Schaltern in jeder Etage und in der Aufzugskabine.
+226>BM Basis-Modul: Kontrolle des Fahrverhaltens bei der Auf- & Abwärtsfahrt inklusive der Bündigkeit;
+227>Durchführung einer Schachtinspektion inkl.
+228>aller Türen und der sich im Schacht befindlichen Elemente, der Schachtgrube sowie des Antriebs- und Bremssystems;
+229>Überprüfung der Notrufverbindung, aller Bedienelemente, des Kabineninnenraumes und der Notbeleuchtung.
+230>TA Türantriebs-Modul: Kontrolle, Überprüfung und ggf.
+231>Reinigung der Kabinenabschlusstüren (Türblätter, Spaltmaß, Rollen, Laufschienen & Schwelle, Verriegelung, Lichtschranke, Riegelmagnet, Türkontakte, Mechanik & elektrische Einrichtung) ST Schachttür-Modul: Kontrolle, Überprüfung und ggf.
+232>Reinigung der Schachtabschlusstüren (Türblätter, Mechanik, Anschläge, Laufschienen & Schwellen, Notentriegelung, Türverriegelung / Kontakte, Dämpfer, Riegelmagnet/-Kurve, Glasscheiben)
+233>BM Basis-Modul: Kontrolle des Fahrverhaltens bei der Auf- & Abwärtsfahrt inklusive der Bündigkeit;
+234>Durchführung einer Schachtinspektion inkl.
+235>aller Türen und der sich im Schacht befindlichen Elemente, der Schachtgrube sowie des Antriebs- und Bremssystems;
+236>Überprüfung der Notrufverbindung, aller Bedienelemente, des Kabineninnenraumes und der Notbeleuchtung.
+237>TA Türantriebs-Modul: Kontrolle, Überprüfung und ggf. 
+238>Reinigung der Kabinenabschlusstüren (Türblätter, Spaltmaß, Rollen, Laufschienen & Schwelle, Verriegelung, Lichtschranke, Riegelmagnet, Türkontakte, Mechanik & elektrische Einrichtung) ST Schachttür-Modul: Kontrolle, Überprüfung und ggf.
+239>Reinigung der Schachtabschlusstüren (Türblätter, Mechanik, Anschläge, Laufschienen & Schwellen, Notentriegelung, Türverriegelung / Kontakte, Dämpfer, Riegelmagnet/-Kurve, Glasscheiben)
+240>BI Basis Inspektion: Kontrolle des Fahrverhaltens bei der Auf- & Abwärtsfahrt inklusive der Bündigkeit;
+241>Überprüfung der Türfunktionen, der Bedienelemente und des Notrufs;
+242>Kontrolle des Kabineninnenraumes.
+243>Ebenfalls eine Sichtkontrolle der Schachtgrube.
+244>SI Signalisations-Modul: Kontrolle, Überprüfung und ggf.
+245>Reinigung der Anzeigen sowie den Tastern und Schaltern in jeder Etage und in der Aufzugskabine.
+246>BI Basis Inspektion: Kontrolle des Fahrverhaltens bei der Auf- & Abwärtsfahrt inklusive der Bündigkeit;
+247>Überprüfung der Türfunktionen, der Bedienelemente und des Notrufs;
+248>Kontrolle des Kabineninnenraumes.
+249>Ebenfalls eine Sichtkontrolle der Schachtgrube.
+250>SI Signalisations-Modul: Kontrolle, Überprüfung und ggf.
+251>Reinigung der Anzeigen sowie den Tastern und Schaltern in jeder Etage und in der Aufzugskabine.
+252>BI Basis Inspektion: Kontrolle des Fahrverhaltens bei der Auf- & Abwärtsfahrt inklusive der Bündigkeit;
+253>Überprüfung der Türfunktionen, der Bedienelemente und des Notrufs;
+254>Kontrolle des Kabineninnenraumes.
+255>Ebenfalls eine Sichtkontrolle der Schachtgrube.
+256>SI Signalisations-Modul: Kontrolle, Überprüfung und ggf.
+257>Reinigung der Anzeigen sowie den Tastern und Schaltern in jeder Etage und in der Aufzugskabine.
+258>BM Basis-Modul: Kontrolle des Fahrverhaltens bei der Auf- & Abwärtsfahrt inklusive der Bündigkeit;
+259>Durchführung einer Schachtinspektion inkl.
+260>aller Türen und der sich im Schacht befindlichen Elemente, der Schachtgrube sowie des Antriebs- und Bremssystems;
+261>Überprüfung der Notrufverbindung, aller Bedienelemente, des Kabineninnenraumes und der Notbeleuchtung.
+262>TA Türantriebs-Modul: Kontrolle, Überprüfung und ggf.
+263>Reinigung der Kabinenabschlusstüren (Türblätter, Spaltmaß, Rollen, Laufschienen & Schwelle, Verriegelung, Lichtschranke, Riegelmagnet, Türkontakte, Mechanik & elektrische Einrichtung) ST Schachttür-Modul: Kontrolle, Überprüfung und ggf.
+264>Reinigung der Schachtabschlusstüren (Türblätter, Mechanik, Anschläge, Laufschienen & Schwellen, Notentriegelung, Türverriegelung / Kontakte, Dämpfer, Riegelmagnet/-Kurve, Glasscheiben) MX: MX Check
+265>BI Basis Inspektion: Kontrolle des Fahrverhaltens bei der Auf- & Abwärtsfahrt inklusive der Bündigkeit;
+266>Überprüfung der Türfunktionen, der Bedienelemente und des Notrufs;
+267>Kontrolle des Kabineninnenraumes.
+268>Ebenfalls eine Sichtkontrolle der Schachtgrube.
+269>SI Signalisations-Modul: Kontrolle, Überprüfung und ggf.
+270>Reinigung der Anzeigen sowie den Tastern und Schaltern in jeder Etage und in der Aufzugskabine.
+271>BI Basis Inspektion: Kontrolle des Fahrverhaltens bei der Auf- & Abwärtsfahrt inklusive der Bündigkeit;
+272>Überprüfung der Türfunktionen, der Bedienelemente und des Notrufs;
+273>Kontrolle des Kabineninnenraumes.
+274>Ebenfalls eine Sichtkontrolle der Schachtgrube.
+275>SI Signalisations-Modul: Kontrolle, Überprüfung und ggf.
+276>Reinigung der Anzeigen sowie den Tastern und Schaltern in jeder Etage und in der Aufzugskabine.
+277>WS:Wartungspaket Schachtentrauchung Prüfung und Reinigung aller gemäß Herstellerangaben zu prüfenden Komponenten des Schachtenrauchungssystems (z.B. Filter. etc)
+278>WS:Wartungspaket Schachtentrauchung Prüfung und Reinigung aller gemäß Herstellerangaben zu prüfenden Komponenten des Schachtenrauchungssystems (z.B. Filter. etc)
+279>BI Basis Inspektion: Kontrolle des Fahrverhaltens bei der Auf- & Abwärtsfahrt inklusive der Bündigkeit;
+280>Überprüfung der Türfunktionen, der Bedienelemente und des Notrufs;
+281>Kontrolle des Kabineninnenraumes.
+282>Ebenfalls eine Sichtkontrolle der Schachtgrube.
+283>SI Signalisations-Modul: Kontrolle, Überprüfung und ggf.
+284>Reinigung der Anzeigen sowie den Tastern und Schaltern in jeder Etage und in der Aufzugskabine.
+285>BI Basis Inspektion: Kontrolle des Fahrverhaltens bei der Auf- & Abwärtsfahrt inklusive der Bündigkeit;
+286>Überprüfung der Türfunktionen, der Bedienelemente und des Notrufs;
+287>Kontrolle des Kabineninnenraumes.
+288>Ebenfalls eine Sichtkontrolle der Schachtgrube.
+289>SI Signalisations-Modul: Kontrolle, Überprüfung und ggf.
+290>Reinigung der Anzeigen sowie den Tastern und Schaltern in jeder Etage und in der Aufzugskabine.
+291>BI Basis Inspektion: Kontrolle des Fahrverhaltens bei der Auf- & Abwärtsfahrt inklusive der Bündigkeit;
+292>Überprüfung der Türfunktionen, der Bedienelemente und des Notrufs;
+293>Kontrolle des Kabineninnenraumes.
+294>Ebenfalls eine Sichtkontrolle der Schachtgrube.
+295>SI Signalisations-Modul: Kontrolle, Überprüfung und ggf.
+296>Reinigung der Anzeigen sowie den Tastern und Schaltern in jeder Etage und in der Aufzugskabine.
+297>BI Basis Inspektion: Kontrolle des Fahrverhaltens bei der Auf- & Abwärtsfahrt inklusive der Bündigkeit;
+298>Überprüfung der Türfunktionen, der Bedienelemente und des Notrufs;
+299>Kontrolle des Kabineninnenraumes.
+300>Ebenfalls eine Sichtkontrolle der Schachtgrube.
+301>SI Signalisations-Modul: Kontrolle, Überprüfung und ggf.
+302>Reinigung der Anzeigen sowie den Tastern und Schaltern in jeder Etage und in der Aufzugskabine.
+303>BI Basis Inspektion: Kontrolle des Fahrverhaltens bei der Auf- & Abwärtsfahrt inklusive der Bündigkeit;
+304>Überprüfung der Türfunktionen, der Bedienelemente und des Notrufs;
+305>Kontrolle des Kabineninnenraumes.
+306>Ebenfalls eine Sichtkontrolle der Schachtgrube.
+307>SI Signalisations-Modul: Kontrolle, Überprüfung und ggf.
+308Reinigung der Anzeigen sowie den Tastern und Schaltern in jeder Etage und in der Aufzugskabine.
+308>BI Basis Inspektion: Kontrolle des Fahrverhaltens bei der Auf- & Abwärtsfahrt inklusive der Bündigkeit;
+309>Überprüfung der Türfunktionen, der Bedienelemente und des Notrufs;
+310>Kontrolle des Kabineninnenraumes.
+311>Ebenfalls eine Sichtkontrolle der Schachtgrube.
+312>SI Signalisations-Modul: Kontrolle, Überprüfung und ggf.
+313>Reinigung der Anzeigen sowie den Tastern und Schaltern in jeder Etage und in der Aufzugskabine.
+313>BI Basis Inspektion: Kontrolle des Fahrverhaltens bei der Auf- & Abwärtsfahrt inklusive der Bündigkeit;
+314>Überprüfung der Türfunktionen, der Bedienelemente und des Notrufs;
+315>Kontrolle des Kabineninnenraumes.
+316>Ebenfalls eine Sichtkontrolle der Schachtgrube.
+317>SI Signalisations-Modul: Kontrolle, Überprüfung und ggf.
+318>Reinigung der Anzeigen sowie den Tastern und Schaltern in jeder Etage und in der Aufzugskabine.
+319>BM Basis-Modul: Kontrolle des Fahrverhaltens bei der Auf- & Abwärtsfahrt inklusive der Bündigkeit;
+320>Durchführung einer Schachtinspektion inkl.
+321>aller Türen und der sich im Schacht befindlichen Elemente, der Schachtgrube sowie des Antriebs- und Bremssystems;
+322>Überprüfung der Notrufverbindung, aller Bedienelemente, des Kabineninnenraumes und der Notbeleuchtung.
+323>BM Basis-Modul: Kontrolle des Fahrverhaltens bei der Auf- & Abwärtsfahrt inklusive der Bündigkeit;
+324>Durchführung einer Schachtinspektion inkl.
+325>aller Türen und der sich im Schacht befindlichen Elemente, der Schachtgrube sowie des Antriebs- und Bremssystems;
+326>Überprüfung der Notrufverbindung, aller Bedienelemente, des Kabineninnenraumes und der Notbeleuchtung.
+327>BM Basis-Modul: Kontrolle des Fahrverhaltens bei der Auf- & Abwärtsfahrt inklusive der Bündigkeit;
+328>Durchführung einer Schachtinspektion inkl.
+329>aller Türen und der sich im Schacht befindlichen Elemente, der Schachtgrube sowie des Antriebs- und Bremssystems;
+330>Überprüfung der Notrufverbindung, aller Bedienelemente, des Kabineninnenraumes und der Notbeleuchtung.
+331>BM Basis-Modul: Kontrolle des Fahrverhaltens bei der Auf- & Abwärtsfahrt inklusive der Bündigkeit;
+332>Durchführung einer Schachtinspektion inkl. aller Türen und der sich im Schacht befindlichen Elemente, der Schachtgrube sowie des Antriebs- und Bremssystems; Überprüfung der Notrufverbindung, aller Bedienelemente, des Kabineninnenraumes und der Notbeleuchtung.
+333>BM Basis-Modul: Kontrolle des Fahrverhaltens bei der Auf- & Abwärtsfahrt inklusive der Bündigkeit;
+334>Durchführung einer Schachtinspektion inkl.
+335>aller Türen und der sich im Schacht befindlichen Elemente, der Schachtgrube sowie des Antriebs- und Bremssystems;
+336>Überprüfung der Notrufverbindung, aller Bedienelemente, des Kabineninnenraumes und der Notbeleuchtung.
+337>BM Basis-Modul: Kontrolle des Fahrverhaltens bei der Auf- & Abwärtsfahrt inklusive der Bündigkeit;
+338>Durchführung einer Schachtinspektion inkl.
+339>aller Türen und der sich im Schacht befindlichen Elemente, der Schachtgrube sowie des Antriebs- und Bremssystems;
+340>Überprüfung der Notrufverbindung, aller Bedienelemente, des Kabineninnenraumes und der Notbeleuchtung.
+341>TA Türantriebs-Modul: Kontrolle, Überprüfung und ggf.
+342>Reinigung der Kabinenabschlusstüren (Türblätter, Spaltmaß, Rollen, Laufschienen & Schwelle, Verriegelung, Lichtschranke, Riegelmagnet, Türkontakte, Mechanik & elektrische Einrichtung) ST Schachttür-Modul: Kontrolle, Überprüfung und ggf.
+343>Reinigung der Schachtabschlusstüren (Türblätter, Mechanik, Anschläge, Laufschienen & Schwellen, Notentriegelung, Türverriegelung / Kontakte, Dämpfer, Riegelmagnet/-Kurve, Glasscheiben)
+344>BM Basis-Modul: Kontrolle des Fahrverhaltens bei der Auf- & Abwärtsfahrt inklusive der Bündigkeit;
+345>Durchführung einer Schachtinspektion inkl.
+346>aller Türen und der sich im Schacht befindlichen Elemente, der Schachtgrube sowie des Antriebs- und Bremssystems;
+347>Überprüfung der Notrufverbindung, aller Bedienelemente, des Kabineninnenraumes und der Notbeleuchtung.
+348>TA Türantriebs-Modul: Kontrolle, Überprüfung und ggf. 
+349>Reinigung der Kabinenabschlusstüren (Türblätter, Spaltmaß, Rollen, Laufschienen & Schwelle, Verriegelung, Lichtschranke, Riegelmagnet, Türkontakte, Mechanik & elektrische Einrichtung) ST Schachttür-Modul: Kontrolle, Überprüfung und ggf.
+350>Reinigung der Schachtabschlusstüren (Türblätter, Mechanik, Anschläge, Laufschienen & Schwellen, Notentriegelung, Türverriegelung / Kontakte, Dämpfer, Riegelmagnet/-Kurve, Glasscheiben)
+351>BI Basis Inspektion: Kontrolle des Fahrverhaltens bei der Auf- & Abwärtsfahrt inklusive der Bündigkeit;
+352>Überprüfung der Türfunktionen, der Bedienelemente und des Notrufs;
+353>Kontrolle des Kabineninnenraumes.
+354>Ebenfalls eine Sichtkontrolle der Schachtgrube.
+355>SI Signalisations-Modul: Kontrolle, Überprüfung und ggf.
+356>Reinigung der Anzeigen sowie den Tastern und Schaltern in jeder Etage und in der Aufzugskabine.
+357>BI Basis Inspektion: Kontrolle des Fahrverhaltens bei der Auf- & Abwärtsfahrt inklusive der Bündigkeit;
+358>Überprüfung der Türfunktionen, der Bedienelemente und des Notrufs;
+359>Kontrolle des Kabineninnenraumes.
+360>Ebenfalls eine Sichtkontrolle der Schachtgrube.
+361>SI Signalisations-Modul: Kontrolle, Überprüfung und ggf.
+362>Reinigung der Anzeigen sowie den Tastern und Schaltern in jeder Etage und in der Aufzugskabine.
+363>BM Basis-Modul: Kontrolle des Fahrverhaltens bei der Auf- & Abwärtsfahrt inklusive der Bündigkeit;
+364>Durchführung einer Schachtinspektion inkl.
+365>aller Türen und der sich im Schacht befindlichen Elemente, der Schachtgrube sowie des Antriebs- und Bremssystems;
+366>Überprüfung der Notrufverbindung, aller Bedienelemente, des Kabineninnenraumes und der Notbeleuchtung.
+367>TA Türantriebs-Modul: Kontrolle, Überprüfung und ggf.
+368>Reinigung der Kabinenabschlusstüren (Türblätter, Spaltmaß, Rollen, Laufschienen & Schwelle, Verriegelung, Lichtschranke, Riegelmagnet, Türkontakte, Mechanik & elektrische Einrichtung) ST Schachttür-Modul: Kontrolle, Überprüfung und ggf.
+369>Reinigung der Schachtabschlusstüren (Türblätter, Mechanik, Anschläge, Laufschienen & Schwellen, Notentriegelung, Türverriegelung / Kontakte, Dämpfer, Riegelmagnet/-Kurve, Glasscheiben)
+370>BM Basis-Modul: Kontrolle des Fahrverhaltens bei der Auf- & Abwärtsfahrt inklusive der Bündigkeit;
+371>Durchführung einer Schachtinspektion inkl.
+372>aller Türen und der sich im Schacht befindlichen Elemente, der Schachtgrube sowie des Antriebs- und Bremssystems;
+373>Überprüfung der Notrufverbindung, aller Bedienelemente, des Kabineninnenraumes und der Notbeleuchtung.
+374>TA Türantriebs-Modul: Kontrolle, Überprüfung und ggf.
+375>Reinigung der Kabinenabschlusstüren (Türblätter, Spaltmaß, Rollen, Laufschienen & Schwelle, Verriegelung, Lichtschranke, Riegelmagnet, Türkontakte, Mechanik & elektrische Einrichtung) ST Schachttür-Modul: Kontrolle, Überprüfung und ggf.
+376>Reinigung der Schachtabschlusstüren (Türblätter, Mechanik, Anschläge, Laufschienen & Schwellen, Notentriegelung, Türverriegelung / Kontakte, Dämpfer, Riegelmagnet/-Kurve, Glasscheiben)
+377>BI Basis Inspektion: Kontrolle des Fahrverhaltens bei der Auf- & Abwärtsfahrt inklusive der Bündigkeit;
+378>Überprüfung der Türfunktionen, der Bedienelemente und des Notrufs;
+379>Kontrolle des Kabineninnenraumes.
+380>Ebenfalls eine Sichtkontrolle der Schachtgrube.
+381>SI Signalisations-Modul: Kontrolle, Überprüfung und ggf.
+382>Reinigung der Anzeigen sowie den Tastern und Schaltern in jeder Etage und in der Aufzugskabine.
+383>BM Basis-Modul: Kontrolle des Fahrverhaltens bei der Auf- & Abwärtsfahrt inklusive der Bündigkeit;
+384>Durchführung einer Schachtinspektion inkl.
+385>aller Türen und der sich im Schacht befindlichen Elemente, der Schachtgrube sowie des Antriebs- und Bremssystems;
+386>Überprüfung der Notrufverbindung, aller Bedienelemente, des Kabineninnenraumes und der Notbeleuchtung.
+387>TA Türantriebs-Modul: Kontrolle, Überprüfung und ggf.
+388>Reinigung der Kabinenabschlusstüren (Türblätter, Spaltmaß, Rollen, Laufschienen & Schwelle, Verriegelung, Lichtschranke, Riegelmagnet, Türkontakte, Mechanik & elektrische Einrichtung) ST Schachttür-Modul: Kontrolle, Überprüfung und ggf.
+388>Reinigung der Schachtabschlusstüren (Türblätter, Mechanik, Anschläge, Laufschienen & Schwellen, Notentriegelung, Türverriegelung / Kontakte, Dämpfer, Riegelmagnet/-Kurve, Glasscheiben)
+389>BI Basis Inspektion: Kontrolle des Fahrverhaltens bei der Auf- & Abwärtsfahrt inklusive der Bündigkeit;
+390>Überprüfung der Türfunktionen, der Bedienelemente und des Notrufs;
+391>Kontrolle des Kabineninnenraumes.
+392>Ebenfalls eine Sichtkontrolle der Schachtgrube.
+393>SI Signalisations-Modul: Kontrolle, Überprüfung und ggf.
+394>Reinigung der Anzeigen sowie den Tastern und Schaltern in jeder Etage und in der Aufzugskabine.
+395>BI Basis Inspektion: Kontrolle des Fahrverhaltens bei der Auf- & Abwärtsfahrt inklusive der Bündigkeit;
+396>Überprüfung der Türfunktionen, der Bedienelemente und des Notrufs;
+397>Kontrolle des Kabineninnenraumes.
+398>Ebenfalls eine Sichtkontrolle der Schachtgrube.
+399>SI Signalisations-Modul: Kontrolle, Überprüfung und ggf.
+400>Reinigung der Anzeigen sowie den Tastern und Schaltern in jeder Etage und in der Aufzugskabine.
+401>Fortsetzung Störungssuche
+402>BI Basis Inspektion: Kontrolle des Fahrverhaltens bei der Auf- & Abwärtsfahrt inklusive der Bündigkeit;
+403>Überprüfung der Türfunktionen, der Bedienelemente und des Notrufs;
+404>Kontrolle des Kabineninnenraumes.
+405>Ebenfalls eine Sichtkontrolle der Schachtgrube.
+406>SI Signalisations-Modul: Kontrolle, Überprüfung und ggf.
+407>Reinigung der Anzeigen sowie den Tastern und Schaltern in jeder Etage und in der Aufzugskabine.
+408>BI Basis Inspektion: Kontrolle des Fahrverhaltens bei der Auf- & Abwärtsfahrt inklusive der Bündigkeit;
+409>Überprüfung der Türfunktionen, der Bedienelemente und des Notrufs;
+410>Kontrolle des Kabineninnenraumes.
+411>Ebenfalls eine Sichtkontrolle der Schachtgrube.
+412>SI Signalisations-Modul: Kontrolle, Überprüfung und ggf.
+413>Reinigung der Anzeigen sowie den Tastern und Schaltern in jeder Etage und in der Aufzugskabine.
+414>BI Basis Inspektion: Kontrolle des Fahrverhaltens bei der Auf- & Abwärtsfahrt inklusive der Bündigkeit;
+415>Überprüfung der Türfunktionen, der Bedienelemente und des Notrufs;
+416>Kontrolle des Kabineninnenraumes.
+417>Ebenfalls eine Sichtkontrolle der Schachtgrube.
+418>SI Signalisations-Modul: Kontrolle, Überprüfung und ggf.
+419>Reinigung der Anzeigen sowie den Tastern und Schaltern in jeder Etage und in der Aufzugskabine.
+420>BI Basis Inspektion: Kontrolle des Fahrverhaltens bei der Auf- & Abwärtsfahrt inklusive der Bündigkeit;
+421>Überprüfung der Türfunktionen, der Bedienelemente und des Notrufs;
+422>Kontrolle des Kabineninnenraumes.
+423>Ebenfalls eine Sichtkontrolle der Schachtgrube.
+424>SM Schacht-Modul: Kontrolle, Überprüfung des gesamten Aufzugsschachts inklusive der sich in der Grube befindlichen Komponenten.
+425>(Umlenkrollen, Seilbefestigungen, Hängekabel, Endschalter, Führungsschienen und Führungsschuhe, Rollenführung, Gegengewicht, Fangvorrichtung, Not-Aus- Schalter, Puffer).
+426>Ggf. Reinigung der betriebsbedingten Verschmutzung.
+427>BI Basis Inspektion: Kontrolle des Fahrverhaltens bei der Auf- & Abwärtsfahrt inklusive der Bündigkeit;
+428>Überprüfung der Türfunktionen, der Bedienelemente und des Notrufs;
+429>Kontrolle des Kabineninnenraumes.
+430>Ebenfalls eine Sichtkontrolle der Schachtgrube.
+431>SM Schacht-Modul: Kontrolle, Überprüfung des gesamten Aufzugsschachts inklusive der sich in der Grube befindlichen Komponenten.
+432>(Umlenkrollen, Seilbefestigungen, Hängekabel, Endschalter, Führungsschienen und Führungsschuhe, Rollenführung, Gegengewicht, Fangvorrichtung, Not-Aus- Schalter, Puffer).
+433>Ggf. Reinigung der betriebsbedingten Verschmutzung.
+434>BI Basis Inspektion: Kontrolle des Fahrverhaltens bei der Auf- & Abwärtsfahrt inklusive der Bündigkeit;
+435>Überprüfung der Türfunktionen, der Bedienelemente und des Notrufs; Kontrolle des Kabineninnenraumes.
+436>Ebenfalls eine Sichtkontrolle der Schachtgrube.
+437>SM Schacht-Modul: Kontrolle, Überprüfung des gesamten Aufzugsschachts inklusive der sich in der Grube befindlichen Komponenten.
+438>(Umlenkrollen, Seilbefestigungen, Hängekabel, Endschalter, Führungsschienen und Führungsschuhe, Rollenführung, Gegengewicht, Fangvorrichtung, Not-Aus- Schalter, Puffer).
+439>Ggf. Reinigung der betriebsbedingten Verschmutzung.
+440>BI Basis Inspektion: Kontrolle des Fahrverhaltens bei der Auf- & Abwärtsfahrt inklusive der Bündigkeit;
+441>Überprüfung der Türfunktionen, der Bedienelemente und des Notrufs;
+442>Kontrolle des Kabineninnenraumes.
+443>Ebenfalls eine Sichtkontrolle der Schachtgrube.
+444>SM Schacht-Modul: Kontrolle, Überprüfung des gesamten Aufzugsschachts inklusive der sich in der Grube befindlichen Komponenten.
+445>(Umlenkrollen, Seilbefestigungen, Hängekabel, Endschalter, Führungsschienen und Führungsschuhe, Rollenführung, Gegengewicht, Fangvorrichtung, Not-Aus- Schalter, Puffer).
+446>Ggf. Reinigung der betriebsbedingten Verschmutzung.
+447>BI Basis Inspektion: Kontrolle des Fahrverhaltens bei der Auf- & Abwärtsfahrt inklusive der Bündigkeit;
+448>Überprüfung der Türfunktionen, der Bedienelemente und des Notrufs;
+449>Kontrolle des Kabineninnenraumes.
+450>Ebenfalls eine Sichtkontrolle der Schachtgrube.
+451>SM Schacht-Modul: Kontrolle, Überprüfung des gesamten Aufzugsschachts inklusive der sich in der Grube befindlichen Komponenten.
+452>(Umlenkrollen, Seilbefestigungen, Hängekabel, Endschalter, Führungsschienen und Führungsschuhe, Rollenführung, Gegengewicht, Fangvorrichtung, Not-Aus- Schalter, Puffer).
+453>Ggf. Reinigung der betriebsbedingten Verschmutzung.
+454>AM Antriebs-Modul: Kontrolle, Überprüfung und ggf.
+455>Reinigung der Antriebskomponenten des Aufzuges je nach Aufzugstyp.
+456>(Bremsen, Tacho, Treibscheibe, Tragseile, Getriebe, Motor, Geschwindigkeitsbegrenzer, Lastwiegeeinrichtung, Ölstand & Behälter, Dichtungen, Steuerblock, Schlauch-& Rohrleitungen) EM Steuerungs-Modul: Kontrolle, Überprüfung und ggf.
+457>Reinigung der Komponenten im Schaltschrank (Schütze/Relais, Kondensatoren, Steckverbindung & Platinen, Lastwiegeeinrichtung, Motorschutz/Kaltleiter/ Laufzeitüberwachung, Sicherungen, Fahrtenzähler, Bündigkeitsanzeige, Akkus/Sprechverbindungen) SI Signalisations-Modul: Kontrolle, Überprüfung und ggf.
+458>Reinigung der Anzeigen sowie den Tastern und Schaltern in jeder Etage und in der Aufzugskabine.
