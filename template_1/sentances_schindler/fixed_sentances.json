@@ -1,0 +1,12 @@
+{
+    "leistungs_header":"Leistungsnachweis",
+    "leistungs_footer" : "elektronisch erstelltes Dokument",
+    "information_anlage":"Informationen zur Anlage",
+    "information_auftrag":"Informationen zum Auftrag",
+    "wartung":"wartung",
+    "auftrag_footer":"Um den ordnungsgemäßen Betrieb der Anlage sicherzustellen, waren wir zu einer Wartung vor Ort und haben im Rahmen der Arbeiten die Sicherheit der Anlage überprüft.",
+    "billing_note":"Tätigkeiten außerhalb der normalen Arbeitszeiten werden mit Überstundenprozenten in Rechnung gestellt.",
+    "signature_note":"Es wurde kein Unterschriftsberechtigter angetroffen.",
+    "footer":"Mit der elektronischen Unterschrift wird die Durchführung des Auftrages bestätig. Hierzu wurden vorstehend genannte Leistungen (Arbeit + Material) erbracht. Das Dokument wurde elektronisch erstellt und ist ohne Unterschrift des Technikers gültig."
+    
+}

@@ -1,0 +1,9 @@
+{
+    "start_x" :40,
+    "start_y" : [730, 750, 5],
+    "fonts_dir": "template_1/fonts",
+    "sentances_dir" : "template_1/sentances_schindler",
+    "rect_colors" : ["lightgrey", "white"],
+    "sentance_gen_type":"fixed",
+    "keys_to_include":["Anlagen-Nr", "Standort", "Auftrags-Nr", "Service Techniker"]
+}

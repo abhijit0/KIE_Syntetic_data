@@ -10,5 +10,12 @@
     "header" : "Zugelassene Überwachungsstelle Aufzüge",
     "file_name": "20181119-32753-1891960176-100-421500.docx",
     "report_name" : "form2.pdf",
-    "page_no" : "Seite 1 von 1"
+    "page_no" : "Seite 1 von 1",
+    "fixed_sentances_path":"template_1/sentances_dekra/fixed_sentances.json",
+    "synonyms_file_path":"template_1/sentances_dekra/synonyms_test.json",
+    "keys_to_include":["Objektstandort","Fabrik-Nr.","Arbeitgeber","Eigennummer","Eigenname",
+    "Prüfgewichte", "Baujahr","Wartungsfirma","Hersteller",
+    "Tragfähigkeit","Haltestellen / Zugangstellen","Geschwindigkeit","Förderhöhe", "Ergebnis der Prüfung"],
+    "shuffle_dict":false,
+    "random_numbers" : false
 }

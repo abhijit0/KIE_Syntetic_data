@@ -48,12 +48,11 @@ def normalize_bbox(bbox, width, height):
         int(1000 * (bbox[3] / height)),
     ]
     
-def get_ocr_data(conf_val:float=25, image_path:str= 'form.jpg'):
+def get_ocr_data(conf_val:float=10, image:np.ndarray= None):
     #image = cv2.imread(image_path)
     
-    image = Image.open(
-    image_path
-        )
+    image = Image.fromarray(image)
+    image_np = np.array(image)
     width, height = image.size
     
     results = pytesseract.image_to_data(image, output_type=Output.DICT, lang='deu')
@@ -80,7 +79,7 @@ def get_ocr_data(conf_val:float=25, image_path:str= 'form.jpg'):
         if conf > conf_val:
         # display the confidence and text to our terminal
         #tokens.append((text, [x + w, y + h]))
-            tokens.append(text)
+            
             #bboxes.append([x,y,x+w, y+h])
             bboxes.append([x1,y1,x2,y2])
             #bboxes.append([xc, yc, wn, hn])
@@ -88,10 +87,11 @@ def get_ocr_data(conf_val:float=25, image_path:str= 'form.jpg'):
 		    # using OpenCV, then draw a bounding box around the text along
 		    # with the text itself
             #text = "".join([c if ord(c) < 128 else "" for c in text]).strip()
-            #cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
-            #cv2.putText(image, text, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX,
+            tokens.append(text)
+            #cv2.rectangle(image_np, (x, y), (x + w, y + h), (0, 255, 0), 2)
+            #cv2.putText(image_np, text, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX,
             #        1.2, (0, 0, 255), 3)
-    return tokens, bboxes, image
+    return tokens, bboxes, image_np
 
 
     
@@ -220,6 +220,7 @@ def form_token_groups(unified_dict:dict=None, tokens:list=None, bboxes:list = No
     #print(val_set)
     #tokens = [token for token in tokens if token not in (' ', '')]
     token_map = {token:[] for token in tokens}
+    #print(f'token_map {token_map}')
     other_map = {}
         
     for key in key_set.keys():
@@ -699,6 +700,25 @@ def key_val_mapping(entities:dict = None, unified_dict:dict=None, key_set:dict=N
 
 def form_relations(entities:dict=None, unified_dict:dict = None, key_set:dict=None, val_set:dict=None, entity_key_index_mapping:dict=None, entity_key_index_mapping_reverse:dict = None):
     relations = {'head':[], 'tail':[]}
+    
+    for key in key_set.keys():
+        if key in entity_key_index_mapping_reverse.keys():
+            key_index = entity_key_index_mapping_reverse[key]
+            val = unified_dict[key]
+            if val in entity_key_index_mapping_reverse.keys(): # If val is not detected by ocr both key and vals are ommitted from relations
+                val_index = entity_key_index_mapping_reverse[val]
+                relations['head'].append(key_index)
+                relations['tail'].append(val_index)
+            else:
+                return 0
+        else:
+            return 0
+                
+
+    return relations
+
+'''def form_relations(entities:dict=None, unified_dict:dict = None, key_set:dict=None, val_set:dict=None, entity_key_index_mapping:dict=None, entity_key_index_mapping_reverse:dict = None):
+    relations = {'head':[], 'tail':[]}
     #print(entity_key_index_mapping_reverse)
     for key in key_set.keys():
         if key in entity_key_index_mapping_reverse.keys():
@@ -712,9 +732,11 @@ def form_relations(entities:dict=None, unified_dict:dict = None, key_set:dict=No
                 return 0
                 
 
-    return relations
-    
-    '''def label_input_ids(self, unified_dict: dict = None, tokens:list=None, bboxes:list=None, input_ids:list = None, input_id_map:dict = None, tokenizer:AutoTokenizer=None):
+    return relations'''
+
+
+
+'''def label_input_ids(self, unified_dict: dict = None, tokens:list=None, bboxes:list=None, input_ids:list = None, input_id_map:dict = None, tokenizer:AutoTokenizer=None):
         label_vals = {'O' : 0, 'B-QUESTION' : 1, 'B-ANSWER' : 2, 'B-HEADER' : 3, 'I-ANSWER' : 4, 'I-QUESTION' : 5, 'I-HEADER' : 6}
         
         labels = {}

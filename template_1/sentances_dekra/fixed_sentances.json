@@ -1,0 +1,5 @@
+{
+    "final_results":["Keine Mängel", "Erhebliche Mängel", "Geringe Mängel"],
+    "prufgrundlage" : ["gem. § 16 BetrSichV", "gem. § 16 BetrSichV; TRBS 1201 Teil4"],
+    "errichtungsgrundlage" : ["EN 81-1:1998", "TRA 200", "RL 95/16/EG", "TV Aufzüge EN 81-1: 1998+A3: 2009"]
+}

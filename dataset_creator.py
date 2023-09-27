@@ -12,6 +12,8 @@ sys.path.append('./template_1/fonts')
 from utility_functions.utilities_kie import *
 from template_1.template1 import Template_Dekra
 from template_1.template_2_kone import Template_Kone
+from template_1.template_schindler import Template_Schindler
+from template_1.template_tuv_nord import Template_TUV_Nord
 import pickle
 import shutil
 from torch.utils.data import Dataset, DataLoader
@@ -42,6 +44,16 @@ class DatasetGenerator:
         self.datasets_init_configs = datasets_init_configs
         self.type_b = False  ## Only used while generating kone documents
         #assert (key.lower() for key in self.datasets_init_configs.keys()) in ('kone', 'dekra', 'schindler', 'tuv')
+    
+    def get_tuv_nord_doc(self, init_config=None):
+        template_schindler = Template_TUV_Nord(**init_config)
+        global_keys, image = template_schindler.draw_report()
+        return global_keys, image
+
+    def get_schindler_doc(self, init_config = None):
+        template_schindler = Template_Schindler(**init_config)
+        global_keys, image = template_schindler.draw_report()
+        return global_keys, image
         
     def get_dekra_doc(self, init_config:dict=None):
       
@@ -54,17 +66,17 @@ class DatasetGenerator:
     def get_kone_doc(self, init_config:dict=None):
         template_kone= Template_Kone(**init_config)
         if not self.type_b:
-            template_kone.draw_type = '2c'
+            template_kone.draw_type = '4c'
         global_keys, image = template_kone.draw_report()
         return global_keys, image
         
     def generate_sample(self, model:AutoModel=None, tokenizer:AutoTokenizer=None, template_configs:dict = None):
         
         global_keys, image = template_configs["get_doc_method"](init_config= template_configs["init_configs"])       
-        
         tokens, bboxes, _ = get_ocr_data(image=image)
+        #print(tokens)
         tokens, bboxes = preprocess_tokens(tokens=tokens, bboxes=bboxes)
-
+        
         tokenizer, model = add_tokens_tokenizer(tokens = tokens, tokenizer = tokenizer, model = model)
         #print(f'tokenized result {tokenizer.tokenize("ergebnis")}')
         input_ids, bboxes, input_id_map = encode_tokens(tokens=tokens, bboxes=bboxes, tokenizer=tokenizer)
@@ -75,14 +87,17 @@ class DatasetGenerator:
         
         #key_vals_unified = global_keys
         key_set, val_set, token_map = form_token_groups(unified_dict=key_vals_unified, tokens=tokens, bboxes=bboxes)
-        
+        #print(key_set)
+        #print(val_set)
+        #print('--')
         labels= label_input_ids(key_set=key_set, val_set=val_set, input_id_map=input_id_map, tokenizer=tokenizer, input_ids=input_ids)
         entities, entity_key_index_mapping, entity_key_index_mapping_reverse = form_entities(unified_dict=key_vals_unified,tokens = tokens,  bboxes = bboxes, input_ids=input_ids, input_id_map=input_id_map, tokenizer=tokenizer)
         
         if entities ==0 or entity_key_index_mapping ==0 or entity_key_index_mapping==0:
             return 0, 0, 0, 0,0,0
-        relations = form_relations(entities=entities, unified_dict=key_vals_unified, key_set=key_set,  entity_key_index_mapping=entity_key_index_mapping, entity_key_index_mapping_reverse = entity_key_index_mapping_reverse)
         
+        relations = form_relations(entities=entities, unified_dict=key_vals_unified, key_set=key_set,  entity_key_index_mapping=entity_key_index_mapping, entity_key_index_mapping_reverse = entity_key_index_mapping_reverse)
+        #print(relations)
         if relations==0:
             return 0, 0, 0, 0,0,0
         return image, input_ids, bboxes, labels, entities, relations
@@ -101,6 +116,7 @@ class DatasetGenerator:
             if not os.path.exists(tokenizer_dir):
                 tokenizer = AutoTokenizer.from_pretrained("microsoft/layoutxlm-base")
             if not os.path.exists(model_dir):
+                
                 model = LayoutLMv2ForRelationExtraction.from_pretrained("microsoft/layoutxlm-base")
             if self.clear_all_old_files:
                 if os.path.exists(tokenizer_dir) and os.path.exists(model_dir):
@@ -120,11 +136,11 @@ class DatasetGenerator:
         with open(self.datasets_init_configs[key]) as f:
             init_config = json.load(f)
         
-        get_doc_method_map = {'kone': self.get_kone_doc, 'dekra': self.get_dekra_doc}
+        get_doc_method_map = {'kone': self.get_kone_doc, 'dekra': self.get_dekra_doc, 'schindler':self.get_schindler_doc, "tuv_nord":self.get_tuv_nord_doc}
         template_configs = {"get_doc_method":get_doc_method_map[key], "init_configs":init_config}
         return template_configs
     
-    def generate_Dataset(self, target_dir:str='dataset/', tokenizer_dir:str=None, model_dir:str = None, ):
+    def generate_Dataset(self, target_dir:str='dataset/', tokenizer_dir:str=None, model_dir:str = None):
         sub_dirs = [self.images_dir, self.images_resized_dir, self.bbox_dir, self.input_ids_dir, self.labels_dir, self.entities_dir, self.relations_dir]
         
         tokenizer, model = self.initialize_tokenizer_model(tokenizer_dir=tokenizer_dir, model_dir=model_dir)
@@ -150,6 +166,7 @@ class DatasetGenerator:
         for (key, val) in self.datasets_init_configs.items():
             print(f'Generating dataset for {key}')       
             for i in tqdm(range(self.num_files)):
+                
                 image = 0
                 while type(image) is int:
                     template_config = self.get_doc_method_mapping(key=key)
@@ -451,7 +468,7 @@ if __name__=='__main__':
     datasetGenerator = DatasetGenerator(**configs)
     datasetGenerator.generate_Dataset(tokenizer_dir='./tokenizer_added_tokens', model_dir='./model_added_tokens')
     #datasetGenerator.test_gnerator(tokenizer_path='trained_models/august_23/tokenizer_added_tokens', model_path = './trained_models/august_23/ts_finetuned', file_index = 2)
-    datasetGenerator.test_gnerator(tokenizer_path='./tokenizer_added_tokens', model_path = './model_added_tokens', file_index = 2)
+    datasetGenerator.test_gnerator(tokenizer_path='./tokenizer_added_tokens', model_path = './model_added_tokens', file_index = 23)
     #datasetGenerator.generate_Dataset(tokenizer_dir='./tokenizer_added_tokens', model_dir='./model_added_tokens')
     #datasetGenerator.test_gnerator(tokenizer_path='./tokenizer_added_tokens', model_path = './model_added_tokens', file_index = 1)
     

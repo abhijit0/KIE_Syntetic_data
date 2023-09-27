@@ -1,11 +1,14 @@
-{"start_x" : 20,
+{"start_x" : 40,
 "start_y" : 730,
 "line_break" : [15,18],
 "key_val_spacing" : 115,
-"draw_type":"4c",
+"draw_type":"2c",
 "fonts_dir":"template_1/fonts",
 "sentances_path" : "template_1/sentances_kone/sentances.csv",
 "fixed_sentance_path" : "template_1/sentances_kone/fixed_sentances.json",
 "technician_comments_path" : "template_1/sentances_kone/technician_comments_kone.csv",
-"sentance_gen_type":"predefined"
+"sentance_gen_type":"predefined",
+"keys_to_include":["Liegenschaft", "Vertragsnummer", "Straße", "Anlagennummer", "Stadt", "Leistungsdatum", "Durchgefürt von", "Plz"],
+"shuffle_key_vals":false,
+"random_numbers":false
 }

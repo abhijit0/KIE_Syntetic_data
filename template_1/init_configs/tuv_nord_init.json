@@ -1,0 +1,8 @@
+{"start_x" : 60,
+"start_y" :700,
+"fonts_dir" : "template_1/fonts",
+"sentance_gen_type":"fixed",
+"keys_to_include" :["Equipment-Nummer","Auftrags-Nummer","Kunden-Nummer", "Akten-Nummer", "Leistungsort", "Baujahr", "Hersteller", "Tragfähigkeit", 
+        "Fabrik-Nr", "Fabrik-/Herstell-Nr", "Nächste Hauptprüfung", "Prüfort", "Prüfdatum", "Betriebsteil", "Ausführende Fa.", "Ausführende Firma", "Prüfergebnis"],
+"random_numbers" : false,
+"sentances_dir" :"template_1/sentances_tuv_nord/fixed_sentances.json"}

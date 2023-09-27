@@ -6,8 +6,10 @@ from Template import Template
 import json
 #pwd = os.getcwd()
 #os.chdir("..")
-
+import sys
+sys.path.append('..')
 from utility_functions.utilities_kie import *
+from utility_functions.utilitites_templates import *
 
 #os.chdir(pwd)
 from faker import Faker
@@ -15,8 +17,10 @@ locales = ['de_DE']
 Faker.seed(0)
 
 #pytesseract.pytesseract.tesseract_cmd = r'C://Program Files//Tesseract-OCR//tesseract.exe'
-pdfmetrics.registerFont(TTFont('Arial', './template_1/arial.ttf'))
-pdfmetrics.registerFont(TTFont('Arial-Bold', './template_1/arialbd.ttf'))
+pdfmetrics.registerFont(TTFont('Arial', './template_1/fonts_bck/arial.ttf'))
+pdfmetrics.registerFont(TTFont('Arial-Bold', './template_1/fonts_bck/arialbd.ttf'))
+#pdfmetrics.registerFont(TTFont('Arial', './fonts/arial.ttf'))
+#pdfmetrics.registerFont(TTFont('Arial-Bold', './fonts/arialbd.ttf'))
 
 header = 'Zugelassene Überwachungsstelle Aufzüge'
 file_name = '20181119-32753-1891960176-100-421500.docx'
@@ -26,7 +30,8 @@ page_no = 'Seite 1 von 1'
 class Template_Dekra(Template):
     
     def __init__(self, start_x: int = None, start_y:int = None, token_spacing: int= None
-                 , line_spacing:int = None, key_spacing:int = None, header_spacing:int = None, section_spacing:int = None, line_break:str=None,  header:str= None, file_name:str= None, report_name:str=None, page_no:int = 1):
+                 , line_spacing:int = None, key_spacing:int = None, header_spacing:int = None, section_spacing:int = None, line_break:str=None,  header:str= None, file_name:str= None, report_name:str=None, page_no:int = 1, 
+                 fonts_dir:str=None, fixed_sentances_path:str=None, synonyms_file_path:str=None, keys_to_include:list=None, shuffle_dict:bool=None, random_numbers:bool=None):
         super().__init__()
         self.start_x = start_x
         self.start_x_temp = start_x
@@ -41,10 +46,25 @@ class Template_Dekra(Template):
         self.header = header
         self.file_name = file_name
         self.report_name = report_name
-        self.synonyms_file = json.load(open("./template_1/synonyms_test.json"))
+        
         self.image_name = report_name[:-4]+'.jpg'
         self.page_no = page_no
+        self.fonts_dir = fonts_dir
+        with open(fixed_sentances_path, 'r') as f:
+            self.fixed_sentances = json.load(f)
+        self.synonyms_file = json.load(open(synonyms_file_path))
+        self.keys_to_include=keys_to_include
+        self.shuffle_dict=shuffle_dict
+        self.random_numbers = random_numbers
         
+    def select_random_font(self, font_dir:str):
+        font = random.choice([f for f in os.listdir(font_dir) if 'bd' not in f[:-4]])
+        font = font[:-4]
+        self.font =  font
+        self.font_bold = f'{self.font}-bold'
+        pdfmetrics.registerFont(TTFont(f'{self.font}', f'{font_dir}/{font}.ttf'))
+        pdfmetrics.registerFont(TTFont(f'{self.font_bold}', f'{font_dir}/{font}bd.ttf'))
+
     def init_utililty_info(self):
         utility_info ={
             'client_address' :  {
@@ -81,7 +101,7 @@ class Template_Dekra(Template):
 
             'evaluator_address_config' : {
                 'font':'Arial',
-                'line_break' : 9,
+                'line_break' : 8,
                 'font_size' : 8,
                 'new_line':['Telefax', 'kontakt']
             },
@@ -126,6 +146,7 @@ class Template_Dekra(Template):
             'Objektart / Anlage' : 'Personenaufzug', #Str type of elevator
             'Fabrik-Nr.' : '1118365', #long 6-9 digits
             'Arbeitgeber' : utility_info['client_address']['line1'],
+            'Prüfsystem' : 'Likos',
             'Eigennummer' : 'HC-ID 13011', # str(2)-str(2) 5 digit number,
             'Eigenname' : 'WE 1172',
             'Verwendete Messgeräte' : 'Profitest 0100, Prüfgewichte', ## Not clear str followed by some 4 digit num and then str
@@ -136,7 +157,7 @@ class Template_Dekra(Template):
         'font-type-keys' : 'Arial-Bold',
         'font-type-vals' : 'Arial',
         'vertical-left-only' : ['Objektstandort', 'Arbeitgeber'],
-        'line-break' : 10,
+        'line-break' : 8,
         'key-val-spacing': 130
   
         },
@@ -158,7 +179,7 @@ class Template_Dekra(Template):
         'font_size' : 9,
         'font-type-keys' : 'Arial-Bold',
         'font-type-vals' : 'Arial',
-        'line-break' : 10,
+        'line-break' : 8,
         'key-val-spacing' : 130
     
         },
@@ -192,6 +213,9 @@ class Template_Dekra(Template):
     def next_line(self, start_y: int, line_break: int):
         return start_y - line_break
     
+    def generate_prufgrundlage(self):
+        return random.choice(self.fixed_sentances["prufgrundlage"])
+    
     def rearange_key_vals_test_results(self, dict_list : dict, keys_to_keep: list): ## keys which needs to appear either of the positions mentioned in indices usually 1,6
         already_swapped_indices = []
         swap_indices = np.arange(0,5)
@@ -224,7 +248,7 @@ class Template_Dekra(Template):
 
         return dict_list
     
-    def generate_geschwindigkeit(slef):
+    def generate_geschwindigkeit(self):
         
         speed = random.choice(np.arange(4,6,0.05))
         speed = np.round(speed, 3)
@@ -235,6 +259,11 @@ class Template_Dekra(Template):
         speed +=' m/s'
         
         return speed
+    
+    def generate_Prüfsystem(self):
+        fake = Faker(locales)
+        name = fake.first_name().replace('\n', '')
+        return name
     
     def generate_company_description(self):
         fake = Faker(locales)
@@ -354,22 +383,34 @@ class Template_Dekra(Template):
         return fake.company().replace('\n', ' ')
     
     def generate_eigennummer(self):
-        part1 = ''.join([random.choice(string.ascii_uppercase) for _ in range(0,4)])
-        part1 = part1[:2] + '-' + part1[2:]
-        part2 = ''.join([str(random.choice(string.digits)) for _ in range(0,5)])
-        eigennummer = part1 + ' ' + part2
-        return eigennummer
+        if self.random_numbers:
+            part1 = ''.join([random.choice(string.ascii_uppercase) for _ in range(0,4)])
+            part1 = part1[:2] + '-' + part1[2:]
+            part2 = ''.join([str(random.choice(string.digits)) for _ in range(0,5)])
+            eigennummer = part1 + ' ' + part2
+            return eigennummer
+        else:
+            prefix = random.choice(['HC-ID 12', 'HC-ID 13'])
+            suffix = generate_random_digit_string(3)
+            return f'{prefix}{suffix}'
     
     def generate_messegrate(self):
         messegrate_divices = ['0100', 'MXTRA', 'MTECH', '0100s ii', 'pv 1500']
         return f'Profitest {random.choice(messegrate_divices)}'
     
     def generate_eigename(self):
-        part1 = ''.join([random.choice(string.ascii_uppercase) for _ in range(0,2)])
-        part2 = ''.join([random.choice(string.digits) for _ in range(0,4)])
+        if self.random_numbers:
+            part1 = ''.join([random.choice(string.ascii_uppercase) for _ in range(0,2)])
+            part2 = ''.join([random.choice(string.digits) for _ in range(0,4)])
 
-        eigename = part1+ ' ' + part2
-        return eigename
+            eigename = part1+ ' ' + part2
+            return eigename
+        else:
+            prefix = 'WE'
+            eigenname = generate_random_digit_string(4)
+            return f'{prefix} {eigenname}'
+        
+
     
     def generate_baujahr(self):
         baujahren = np.arange(1999, 2023)
@@ -377,7 +418,14 @@ class Template_Dekra(Template):
         return str(baujahr)
     
     def generate_fabrik_nr(self):
+        alpha = [i<30 for i in range(100)]
+        if alpha:
+            fabrik_nr = '47NAL'+generate_random_digit_string(3)
+        else:
+            fabrik_nr = generate_random_digit_string(random.choice(np.arange(4,7)))
         return ''.join([random.choice(string.digits) for _ in range(0,7)])
+        
+
     
     def generate_antrieb(self):
         antrieb_types = ['Treibscheibe', 'Traktionsantrieb', 'Spindelantrieb', 'Zahnstangenantrieb']
@@ -386,8 +434,11 @@ class Template_Dekra(Template):
         return random.choice(antrieb_types)+' / '+random.choice(antrieb_ratios)
     
     def generate_errichtungsgrundlage(self):
-        errichtungsgrundlage_list = ['EN 81-1: 1998+A3: 2009', 'EN 81-20', 'EN 81-1: 1998', 'TRA 200']
-        return random.choice(errichtungsgrundlage_list)
+        if self.random_numbers:
+            errichtungsgrundlage_list = ['EN 81-1: 1998+A3: 2009', 'EN 81-20', 'EN 81-1: 1998', 'TRA 200']
+            return random.choice(errichtungsgrundlage_list)
+        else:
+            return random.choice(self.fixed_sentances["errichtungsgrundlage"])
     
     def generate_tragfähigkeit(self):
         
@@ -405,6 +456,14 @@ class Template_Dekra(Template):
         haltstellen = f'{haltstellen} / {haltstellen}'
         return haltstellen
     
+    def include_betreiber(self, unified_dict:dict=None):
+        unified_dict['test_certificate_results']['Betreiber'] = unified_dict['test_certificate_results']['Arbeitgeber']
+        unified_dict['test_certificate_results'].pop('Arbeitgeber')
+        if 'Arbeitgeber' in self.keys_to_include:
+            self.keys_to_include.pop(self.keys_to_include.index('Arbeitgeber'))
+            self.keys_to_include.append('Betreiber')
+        return unified_dict
+    
     def populate_test_certificate_results_fake(self, unified_dict:dict= None, utility_info : dict = None):
         address_objektstandort = self.generate_random_address()
         unified_dict['test_certificate_results']['Objektstandort'] = address_objektstandort
@@ -412,10 +471,31 @@ class Template_Dekra(Template):
         
         unified_dict['test_certificate_results']['Objektart / Anlage'] = random.choice(self.synonyms_file[word])
         unified_dict['test_certificate_results']['Arbeitgeber'] = ' '.join([utility_info["client_address"][key] for key in utility_info["client_address"].keys()])
+        
+        #add_betrieber = random.choice([i<10 for i in range(100)])
+        #if add_betrieber:
+        #    unified_dict = self.include_betreiber()
+
         unified_dict['test_certificate_results']['Eigennummer'] = self.generate_eigennummer()
         unified_dict['test_certificate_results']['Eigenname'] = self.generate_eigename()
+        remove_eigename = random.choice([i<5 for i in range(100)])
+        if remove_eigename:
+            unified_dict['test_certificate_results']['Eigennummer'] = unified_dict['test_certificate_results']['Eigenname']
+            unified_dict['test_certificate_results'].pop('Eigenname')
+            if 'Eigenname' in self.keys_to_include:
+                self.keys_to_include.pop(self.keys_to_include.index('Eigenname'))
+        
         unified_dict['test_certificate_results']['Fabrik-Nr.'] = self.generate_fabrik_nr()
         unified_dict['test_certificate_results']['Verwendete Messgeräte'] = self.generate_messegrate()
+        self.include_prufsystem = random.choice([True, False, False, False])
+
+        if self.include_prufsystem:
+            unified_dict['test_certificate_results']['Prüfsystem'] = self.generate_Prüfsystem()
+        else:
+            if 'Prüfsystem' in unified_dict.keys():
+                unified_dict.pop('Prüfsystem')
+                
+        
 
         return unified_dict
     
@@ -430,6 +510,11 @@ class Template_Dekra(Template):
         unified_dict["technical_specifications"]['Haltestellen / Zugangstellen'] = self.generate_haltstellen()
         unified_dict["technical_specifications"]["Geschwindigkeit"] = self.generate_geschwindigkeit()
         
+        return unified_dict
+    
+    def populate_final_results(self, unified_dict:dict=None):
+        
+        unified_dict['final_result']['Ergebnis der Prüfung'] = random.choice(self.fixed_sentances["final_results"])
         return unified_dict
         
     
@@ -471,56 +556,58 @@ class Template_Dekra(Template):
                     y = self.next_line(y, evaluator_address_config['line_break'])
         return x, y
     
-    def shuffle_dict(self, dict_):
-        items_test_certificate_results = list(dict_.items())
-        random.shuffle(items_test_certificate_results)
-        return items_test_certificate_results
-    
 
     
     def draw_test_certificate_results(self, test_certificate_results, test_certificate_results_config, canvas, x, y):
-        items_test_certificate_results = self.shuffle_dict(test_certificate_results)
-        items_test_certificate_results = self.rearange_key_vals_test_results(items_test_certificate_results, test_certificate_results_config['vertical-left-only'])
         
+        if self.shuffle_dict:
+            items_test_certificate_results = shuffle_dict(test_certificate_results)
+            items_test_certificate_results = self.rearange_key_vals_test_results(items_test_certificate_results, test_certificate_results_config['vertical-left-only'])
+        else:
+            items_test_certificate_results = [(key,val) for key,val in test_certificate_results.items()]
         
         start_x_temp = x
         new_lines = []
         for i , (key, val) in enumerate(items_test_certificate_results):
-            start_x_temp_old = None
-            y_temp = None
-            if i == 6:
-                start_x_temp = start_x_temp + 2 * test_certificate_results_config['key-val-spacing']
-                y = new_lines[-5]
-                
+            
+            if key.lower() == 'prüfsystem' and not self.include_prufsystem:
+                continue
+            
+            if key.lower() == 'prüfsystem' and self.include_prufsystem:
+                if i == 7:
+                    start_x_temp = start_x_temp + 2 * test_certificate_results_config['key-val-spacing']
+                    y = new_lines[-5]
+            else:
+                if i == 6:
+                    start_x_temp = start_x_temp + 2 * test_certificate_results_config['key-val-spacing']
+                    y = new_lines[-4]
             
             canvas.setFont(test_certificate_results_config['font-type-keys'], test_certificate_results_config['font_size'])
             canvas.drawString(start_x_temp, y , key)
             #start_x_temp = start_x_temp + test_certificate_results_config['key-val-spacing']
             
             canvas.setFont(test_certificate_results_config['font-type-vals'], test_certificate_results_config['font_size'])
-            if len(str(val).split(" "))> 3 or len(str(val).split(" ")[0]) >= 20:
-                
-                if len(str(val).split(" ")[0]) >= 20:
-                    split_index = 1
-                else:
-                    split_index = 3    
-                canvas.drawString(start_x_temp + test_certificate_results_config['key-val-spacing'], y, ' '.join(str(val).split(" ")[:split_index]))
+            line1,line2 = break_string(val, 28)
+            lines = [line1, line2] if line2 != '0' else [line1]
+            for line in lines:
+                canvas.drawString(start_x_temp + test_certificate_results_config['key-val-spacing'], y, line)
                 y = self.next_line(y, 12)
-                canvas.drawString(start_x_temp + test_certificate_results_config['key-val-spacing'], y, ' '.join(str(val).split(" ")[split_index:]))
-                if(len(str(val).split(" ")[split_index:]) > 3):
-                    y = self.next_line(y, 8)
-            else:
-                canvas.drawString(start_x_temp + test_certificate_results_config['key-val-spacing'], y, str(val))
             
             y = self.next_line(y, test_certificate_results_config['line-break'])
             new_lines.append(y)
 
         return x, min(new_lines)
+    
      
     def draw_technical_specifications(self, technical_specifications, technical_specifications_config, canvas, x, y):
         start_x_temp = x
         start_y_temp = y
-        shuffled_dict_tuple = self.shuffle_dict(technical_specifications)
+
+        if self.shuffle_dict:
+            shuffled_dict_tuple = shuffle_dict(technical_specifications)
+        else:
+            shuffled_dict_tuple = [(key,val) for key,val in technical_specifications.items()]
+
         new_lines = []
         for i, (key, val) in enumerate(shuffled_dict_tuple):
             if i == 4:
@@ -532,17 +619,11 @@ class Template_Dekra(Template):
             canvas.setFont(technical_specifications_config['font-type-vals'], technical_specifications_config['font_size'])
             #start_x_temp += technical_specifications_config['key-val-spacing']
             
-            if len(str(val).split(" ")) >= 3: 
-                str_eval = ' '.join(str(val).split(" ")[:2])
-                #print(f'{val}')
-                split_index = 1 if len(str_eval) >= 22 else 3
-                canvas.drawString(start_x_temp + technical_specifications_config['key-val-spacing'], start_y_temp, ' '.join(str(val).split(" ")[:split_index]))
-                start_y_temp = self.next_line(start_y_temp, 12)
-                canvas.drawString(start_x_temp + technical_specifications_config['key-val-spacing'], start_y_temp, ' '.join(str(val).split(" ")[split_index:]))
-                if(len(str(val).split(" ")[split_index:]) > 3):
-                    start_y_temp = self.next_line(start_y_temp, 4)
-            else:
-                canvas.drawString(start_x_temp + technical_specifications_config['key-val-spacing'], start_y_temp, str(val))
+            lines = break_string_recursively(val, 25)
+            for line in lines:
+                canvas.drawString(start_x_temp + technical_specifications_config['key-val-spacing'], start_y_temp, line)
+                start_y_temp = self.next_line(start_y_temp, 10)
+
             start_y_temp = self.next_line(start_y_temp, technical_specifications_config['line-break'])
             new_lines.append(start_y_temp)
         return x, min(new_lines)
@@ -637,7 +718,7 @@ class Template_Dekra(Template):
         
         
         canvas.drawString(x, y, prufung_dates['Nächste Prüfung'])
-        y -= 35
+        y -= 25
         canvas.setFont(prufung_dates_config['font-type-vals'], prufung_dates_config['font_size'])
         canvas.drawString(x_temp, y, 'Datum der Prüfung')
         x_temp += prufung_dates_config['key-val-spacing']
@@ -661,7 +742,7 @@ class Template_Dekra(Template):
         evaluator_address = {'address' : utility_info['evaluator_address']['address']}
         #print(utility_info['evaluator_address_config'])
         utility_info['evaluator_address_config']['font_size'] -=3
-        utility_info['evaluator_address_config']['line_break'] -=2
+        utility_info['evaluator_address_config']['line_break'] -=4
         self.draw_evaluator_address(evaluator_address, utility_info['evaluator_address_config'], canvas, self.start_x, y, y, position='right')
         utility_info = self.generate_evaluator_adrress(utility_info=utility_info)
         evaluator_address = {'address' : utility_info['evaluator_address']['address']}
@@ -693,8 +774,15 @@ class Template_Dekra(Template):
         
         
         #canvas.drawString(x, new_line + 10, 'fake bank')
+    def filter_dict(self, global_keys:dict=None):
+        filtered_dict = {}
+        self.keys_to_include = [key.lower() for key in self.keys_to_include]
+        for key in self.keys_to_include:
+            if key in global_keys.keys():
+                filtered_dict[key] = global_keys[key]
         
-
+        return filtered_dict
+    
     def draw_report(self,header:dict=None, report_name:str='form.pdf', global_keys:dict = None):
         
         c = Canvas(report_name)
@@ -706,7 +794,7 @@ class Template_Dekra(Template):
         canvas.setFillColor(HexColor(0x000000))
         canvas.drawString(self.start_x,self.start_y, header)  
         canvas.setFont('Arial', 8)
-  
+        
         new_line = self.next_line(self.start_y, self.line_break + 20)
   
         canvas.drawString(self.start_x,new_line, file_name)
@@ -763,6 +851,8 @@ class Template_Dekra(Template):
         new_line = self.next_line(new_line, self.line_break)
         #print(new_line)
         #print('-------')
+        
+        global_keys= self.populate_final_results(unified_dict=global_keys)
         _, new_line = self.draw_final_result(global_keys['final_result'], global_keys['final_result_config'], canvas, self.start_x, new_line)
         new_line = self.next_line(new_line, self.line_break)
         
@@ -776,7 +866,7 @@ class Template_Dekra(Template):
         
         name_prefix_flag = True if random.choice(np.arange(1,10)) == 1 else False
         canvas.drawString(self.start_x, new_line, self.generate_person_name(prefix=name_prefix_flag))
-        new_line = self.next_line(new_line, self.section_spacing + 80)
+        new_line = self.next_line(new_line, self.section_spacing + 70)
         
         
         self.draw_footer(utility_info, canvas, self.start_x, new_line)
@@ -787,6 +877,11 @@ class Template_Dekra(Template):
         #plt.figure(figsize = (200,10))
         #plt.imshow(cv2.imread('form.jpg')[:,:,::-1])
         image = cv2.imread(f'{report_name[:-4]}.jpg')[:,:,::-1]
+        #print(image.shape)
+        global_keys = unify_keys_vals(global_keys)
+        global_keys = self.filter_dict(global_keys=global_keys)
+        
+        global_keys = {'global_keys':global_keys, 'global_keys_config':{}}
         return global_keys, image
     
 
@@ -812,6 +907,9 @@ if __name__=='__main__':
     file_name = '20181119-32753-1891960176-100-421500.docx'
     report_name = 'form.pdf'
     page_no = 'Seite 1 von 1'
+    fonts_dir = 'fonts'
+    fixed_sentances_path="sentances_dekra/fixed_sentances.json"
+    synonyms_file_path = 'sentances_dekra/synonyms_test.json'
 
     template1 = Template_Dekra(start_x = start_x,
         start_y = start_y,
@@ -824,10 +922,14 @@ if __name__=='__main__':
         header = header,
         file_name = file_name,
         report_name=report_name,
-        page_no = page_no)
+        page_no = page_no,
+        fonts_dir = fonts_dir,
+        fixed_sentances_path = fixed_sentances_path,
+        synonyms_file_path = synonyms_file_path
+        )
     #draw_report(header=header, report_name='form.pdf')
 
-    template1.draw_report(header=header, report_name='form.pdf')
+    template1.draw_report(header=header, report_name='form_dekra.pdf')
     #pages = convert_from_path('form.pdf', 500)
     #pages[0].save(f'form.jpg', 'JPEG')
     #template1.draw_report(header=header, report_name='form2.pdf')
