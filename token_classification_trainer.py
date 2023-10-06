@@ -186,7 +186,7 @@ def model_eval_token_classification(model_input_dir:str=None, train_dataset:Cust
     tokenizer = LayoutXLMTokenizer.from_pretrained(tokenizer_path)
     feature_extractor = LayoutLMv2FeatureExtractor(apply_ocr=False)
     
-    data_collator = DataCollatorForKeyValueExtraction(
+    data_collator = DataCollatorForTokenClassification(
         feature_extractor,
         tokenizer,
         pad_to_multiple_of=8,
