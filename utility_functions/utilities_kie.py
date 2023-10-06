@@ -404,52 +404,7 @@ def reorder_input_ids_on_key_vals(input_ids:list = None, key_set:dict=None, val_
                         input_ids[index_to_be_swapped], input_ids[index_to_be_swapped_with] = input_ids[index_to_be_swapped_with], input_ids[index_to_be_swapped]
                         
          
-    return input_ids
-
-'''def reorder_input_ids_on_key_vals(input_ids:list = None, key_set:dict=None, val_set:dict = None, tokenizer:AutoTokenizer = None, input_id_map:dict = None):
-    #input_ids = np.array(input_ids)
-    unified_dict = key_set | val_set
-    for key in unified_dict.keys():
-        key_tokens = unified_dict[key]
-        if len(key_tokens) > 1:
-            tokens_tokenized = [tokenizer.tokenize(token) for token in key_tokens]
-            
-
-            tokens_tokenized = [token for token_list in tokens_tokenized for token in token_list if token not in (' ', '', '\t', '\n','▁') and token not in set(str(string.punctuation))]
-                
-            id_list_key_token = [input_id_map[t] for t in tokens_tokenized]
-            indices = find_sequnce_indices(id_list_key_token, input_ids=input_ids)
-            if len(indices) == 0:
-                subsequence_index = []
-                for i in range(len(input_ids)):
-                    if input_ids[i:i+2] == id_list_key_token[:2]:
-                        subsequence_index.append((i, i+2))
-                print('----------')
-                print(f' testing reorder {id_list_key_token} subsequence_index[0] {subsequence_index}')
-                print('-----------')
-                if len(id_list_key_token) >2 and len(subsequence_index[0]) > 0:
-                    print('----------')
-                    print(f' testing reorder {id_list_key_token} subsequence_index[0] {subsequence_index[0]}')
-                    print('-----------')
-                    tokens_indices_list = [subsequence_index[0], subsequence_index[1]-1]
-                    input_ids_np = np.array(input_ids)
-                    for i in range(2,len(id_list_key_token)):
-                        token = id_list_key_token[i]
-                        indices_token = np.where(input_ids_np == token)[0]
-                        flag = 0
-                        for index in indices_token:
-                            if index == tokens_indices_list[-1] + 1: #checking if the token appears after the last token in the subsequence list (of lenght 2)
-                                flag = 1
-                                tokens_indices_list.append(index)
-                        if flag == 0:
-                            index_to_be_swapped = indices_token[0]
-                            index_to_be_swapped_with = tokens_indices_list[-1] + 1
-                            input_ids[index_to_be_swapped], input_ids[index_to_be_swapped_with] = input_ids[index_to_be_swapped_with], input_ids[index_to_be_swapped]
-                            tokens_indices_list.append(index_to_be_swapped_with)
-    return input_ids'''
-                    
-                        
-                    
+    return input_ids                    
 
 def find_sequnce_indices(sequence:list = None, input_ids:list = None):
     indexes = []
@@ -457,25 +412,6 @@ def find_sequnce_indices(sequence:list = None, input_ids:list = None):
         if input_ids[i:i+len(sequence)] == sequence:
             indexes.append((i, i+len(sequence)))
     return indexes
-
-'''def find_sequnce_indices(sequence:list = None, input_ids:list = None):
-    indexes = []
-    difference= None
-    for i in range(len(input_ids)):
-        count = 0
-        matched_elements = [element for element in sequence if element in input_ids[i:i+len(sequence)]]
-        difference_local = len(sequence) - len(matched_elements)
-        if difference_local != 0:
-            if difference_local <= 1:
-                print(f'input_ids[i:i+len(sequence) {input_ids[i:i+len(sequence)]}')
-                print(f' matched_elements {matched_elements}')
-                print(f' sequence {sequence}')
-                indexes.append((i, i+len(sequence)))
-                difference = difference_local
-        else:
-            indexes.append((i, i+len(sequence)))
-            difference = difference_local
-    return indexes, difference'''
 
 def form_entities(unified_dict:dict=None, input_ids:list= None, input_id_map:dict = None, tokenizer:AutoTokenizer=None, tokens:list = None, bboxes:list = None):
     label_vals = {'O' : 0, 'B-QUESTION' : 1, 'B-ANSWER' : 2, 'B-HEADER' : 3, 'I-ANSWER' : 4, 'I-QUESTION' : 5, 'I-HEADER' : 6}
@@ -698,9 +634,9 @@ def key_val_mapping(entities:dict = None, unified_dict:dict=None, key_set:dict=N
 
     return key_set_indices , val_set_indices
 
-def form_relations(entities:dict=None, unified_dict:dict = None, key_set:dict=None, val_set:dict=None, entity_key_index_mapping:dict=None, entity_key_index_mapping_reverse:dict = None):
+'''def form_relations(entities:dict=None, unified_dict:dict = None, key_set:dict=None, val_set:dict=None, entity_key_index_mapping:dict=None, entity_key_index_mapping_reverse:dict = None):
     relations = {'head':[], 'tail':[]}
-    
+
     for key in key_set.keys():
         if key in entity_key_index_mapping_reverse.keys():
             key_index = entity_key_index_mapping_reverse[key]
@@ -715,7 +651,79 @@ def form_relations(entities:dict=None, unified_dict:dict = None, key_set:dict=No
             return 0
                 
 
-    return relations
+    return relations'''
+
+def form_relations(entities:dict=None, unified_dict:dict = None, key_set:dict=None, val_set:dict=None, entity_key_index_mapping:dict=None, entity_key_index_mapping_reverse:dict = None):
+    relations = {'head':[], 'tail':[]}
+    relations_with_keys = {'head':[], 'tail':[], 'key':[]}
+    
+
+    for key in key_set.keys():
+        if key in entity_key_index_mapping_reverse.keys():
+            key_index = entity_key_index_mapping_reverse[key]
+            val = unified_dict[key]
+            if val in entity_key_index_mapping_reverse.keys(): # If val is not detected by ocr both key and vals are ommitted from relations
+                val_index = entity_key_index_mapping_reverse[val]
+                relations['head'].append(key_index)
+                relations['tail'].append(val_index)
+
+                relations_with_keys['head'].append(key_index)
+                relations_with_keys['tail'].append(val_index)
+                relations_with_keys['key'].append(key)
+            else:
+                return 0,0
+        else:
+            return 0,0
+                
+
+    return relations, relations_with_keys
+
+def rearrange_labels_no_re(labels_no_re:dict=None):
+    labels_rearranged = {}
+    ## Creating key and val pairs
+    
+    for key, val in labels_no_re.items():
+        for item in val:
+            labels_rearranged[item.lower()] = key
+    return labels_rearranged
+
+def label_input_ids_no_re(entities:dict=None, relations_with_keys:dict=None, labels_no_re:dict=None, input_ids:list=None):
+    
+    labels_no_re_rearranged = rearrange_labels_no_re(labels_no_re=labels_no_re)
+    labels = {}
+
+    labels_no_re_temp = {}
+    for key, val in labels_no_re.items():
+        labels_no_re_temp[f'{key}_key'] = val
+        labels_no_re_temp[f'{key}_val'] = []
+    label2id = {key:i+1 for i, (key,_) in enumerate(labels_no_re_temp.items())}
+    label2id['Other']=0
+    
+    entity_input_ids = []
+    #print(entities)
+    for i , (start, end) in enumerate(zip(entities['start'], entities['end'])):
+        entity_input_ids.append(input_ids[start:end])
+    #print(entity_names)
+    for i in range(len(relations_with_keys['head'])):
+        key_ids = entity_input_ids[relations_with_keys['head'][i]]
+        val_ids = entity_input_ids[relations_with_keys['tail'][i]]
+        key = relations_with_keys['key'][i]
+        if key in labels_no_re_rearranged:
+            for id in key_ids:
+                key_index = f'{labels_no_re_rearranged[key]}_key'
+                labels[id] = label2id[key_index]
+            for id in val_ids:
+                val_index = f'{labels_no_re_rearranged[key]}_val'
+                labels[id] = label2id[val_index]
+
+    for id in input_ids:
+        if id not in labels.keys():
+            labels[id] = label2id['Other']
+    labels_list = [labels[id] for id in input_ids]
+    return labels_list        
+    
+            #print(f'question : {entity_names[relations["head"][i]]}, Answer :  {entity_names[relations["tail"][i]]}, start: {relations["head"][i]}, end: {relations["tail"][i]}')
+
 
 '''def form_relations(entities:dict=None, unified_dict:dict = None, key_set:dict=None, val_set:dict=None, entity_key_index_mapping:dict=None, entity_key_index_mapping_reverse:dict = None):
     relations = {'head':[], 'tail':[]}

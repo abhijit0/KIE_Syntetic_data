@@ -1,5 +1,5 @@
 {
-    "num_files":6,
+    "num_files":1,
     "images_dir" : "images",
     "images_resized_dir" : "images_resized",
     "bbox_dir":"bbox",
@@ -10,6 +10,8 @@
     "type":"train",
     "clear_all_old_files" : true,
     "clear_old_files_type": [false, "validation"],
-    "datasets_init_configs":{"kone": "template_1/init_configs/kone_init.json", "dekra": "template_1/init_configs/dekra_init.json"}
+    "datasets_init_configs":{ "tuv_nord":"template_1/init_configs/tuv_nord_init.json", "dekra":"template_1/init_configs/dekra_init.json", "kone":"template_1/init_configs/kone_init.json"
+    ,"schindler":"template_1/init_configs/schindler_init.json"},
+    "no_re":true
 
 }

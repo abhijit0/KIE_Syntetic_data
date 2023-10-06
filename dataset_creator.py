@@ -29,7 +29,7 @@ from typing import Optional, Union
 
 class DatasetGenerator:
     def __init__(self, num_files:int=None, images_dir:str=None, images_resized_dir:str=None, bbox_dir:str = None, input_ids_dir :str = None, 
-                 labels_dir :str = None, entities_dir :str =None, relations_dir:str = None, type:str=None, clear_all_old_files:bool=None, clear_old_files_type:list=None, datasets_init_configs:dict=None):
+                 labels_dir :str = None, entities_dir :str =None, relations_dir:str = None, type:str=None, clear_all_old_files:bool=None, clear_old_files_type:list=None, datasets_init_configs:dict=None, no_re:bool=None):
         self.num_files = num_files
         self.images_dir = images_dir
         self.bbox_dir = bbox_dir
@@ -42,6 +42,7 @@ class DatasetGenerator:
         self.clear_all_old_files = clear_all_old_files
         self.clear_old_files_type = clear_old_files_type
         self.datasets_init_configs = datasets_init_configs
+        self.no_re=no_re
         self.type_b = False  ## Only used while generating kone documents
         #assert (key.lower() for key in self.datasets_init_configs.keys()) in ('kone', 'dekra', 'schindler', 'tuv')
     
@@ -96,11 +97,19 @@ class DatasetGenerator:
         if entities ==0 or entity_key_index_mapping ==0 or entity_key_index_mapping==0:
             return 0, 0, 0, 0,0,0
         
-        relations = form_relations(entities=entities, unified_dict=key_vals_unified, key_set=key_set,  entity_key_index_mapping=entity_key_index_mapping, entity_key_index_mapping_reverse = entity_key_index_mapping_reverse)
+        relations, relations_with_keys = form_relations(entities=entities, unified_dict=key_vals_unified, key_set=key_set,  entity_key_index_mapping=entity_key_index_mapping, entity_key_index_mapping_reverse = entity_key_index_mapping_reverse)
         #print(relations)
         if relations==0:
             return 0, 0, 0, 0,0,0
-        return image, input_ids, bboxes, labels, entities, relations
+        
+        if not self.no_re:
+            return image, input_ids, bboxes, labels, entities, relations
+        else:
+            with open('token_ts_no_re.json', 'r') as f:
+                labels_no_re = json.load(f)
+            labels = label_input_ids_no_re(entities=entities, relations_with_keys=relations_with_keys, 
+                                           labels_no_re=labels_no_re, input_ids=input_ids)
+            return image, input_ids,bboxes,labels,0, 0
     
     def dump_pickle(self, file_name:str=None, collection:object=None):
         file_name = os.path.join(os.getcwd(), file_name)
@@ -141,7 +150,11 @@ class DatasetGenerator:
         return template_configs
     
     def generate_Dataset(self, target_dir:str='dataset/', tokenizer_dir:str=None, model_dir:str = None):
-        sub_dirs = [self.images_dir, self.images_resized_dir, self.bbox_dir, self.input_ids_dir, self.labels_dir, self.entities_dir, self.relations_dir]
+
+        if self.no_re:
+            sub_dirs = [self.images_dir, self.images_resized_dir, self.bbox_dir, self.input_ids_dir, self.labels_dir, self.entities_dir, self.relations_dir]
+        else:
+            sub_dirs = [self.images_dir, self.images_resized_dir, self.bbox_dir, self.input_ids_dir, self.labels_dir]
         
         tokenizer, model = self.initialize_tokenizer_model(tokenizer_dir=tokenizer_dir, model_dir=model_dir)
         
@@ -176,7 +189,7 @@ class DatasetGenerator:
                     
                     image, input_ids, bboxes, labels, entities, relations = self.generate_sample(model=model, tokenizer=tokenizer, template_configs=template_config)
                 
-                    if type(image) is not int or type(bboxes) is not int or type(input_ids) is not int or type(labels) is not int or type(entities) is not int or type(relations) is not int:
+                    if type(image) is not int or type(bboxes) is not int or type(input_ids) is not int or type(labels) is not int:
                         #print('Invalid OCR extraction skipping the sample')
                         #continue
                         image_resized = cv2.resize(image, (224,224))
@@ -193,21 +206,22 @@ class DatasetGenerator:
                         input_ids_file_name = os.path.join(f'{target_dir}/{self.type}/{self.input_ids_dir}/input_ids_{count + i}.p')
             
                         self.dump_pickle(file_name=input_ids_file_name, collection=input_ids)
-            
-                        ## entities
-                        entities_file_name = os.path.join(f'{target_dir}/{self.type}/{self.entities_dir}/entities_{count+i}.p')
-            
-                        self.dump_pickle(file_name=entities_file_name, collection=entities)
-            
+
                         ## labels
                         labels_file_name = os.path.join(f'{target_dir}/{self.type}/{self.labels_dir}/labels_{count + i}.p')
             
                         self.dump_pickle(file_name=labels_file_name, collection=labels)
+
+                        if type(entities) is not int or type(relations) is not int:
+                            ## entities
+                            entities_file_name = os.path.join(f'{target_dir}/{self.type}/{self.entities_dir}/entities_{count+i}.p')
             
-                        ## relations
-                        relations_file_name = os.path.join(f'{target_dir}/{self.type}/{self.relations_dir}/relations_{count +i}.p')
+                            self.dump_pickle(file_name=entities_file_name, collection=entities)
+                       
+                            ## relations
+                            relations_file_name = os.path.join(f'{target_dir}/{self.type}/{self.relations_dir}/relations_{count +i}.p')
             
-                        self.dump_pickle(file_name=relations_file_name, collection=relations)
+                            self.dump_pickle(file_name=relations_file_name, collection=relations)
             count += self.num_files
         
         tokenizer.save_pretrained('./tokenizer_added_tokens')
@@ -216,18 +230,18 @@ class DatasetGenerator:
     def path_exist(self, path:str=None):
         return os.path.exists(path)    
     
-    def test_gnerator(self, tokenizer_path:str=None, model_path:str=None, file_index:int=None):
+    def test_gnerator_re(self, root_dir:str=None, tokenizer_path:str=None, model_path:str=None, file_index:int=None):
         tokenizer = AutoTokenizer.from_pretrained(tokenizer_path)
         model = LayoutLMv2ForRelationExtraction.from_pretrained(model_path)
-        image_path = f'dataset/train/images/image_{file_index}.jpeg'
-        image_resized_path = f'dataset/train/images_resized/image_{file_index}.jpeg'
+        image_path = f'{root_dir}/train/images/image_{file_index}.jpeg'
+        image_resized_path = f'{root_dir}/train/images_resized/image_{file_index}.jpeg'
         
         #print(os.listdir(f'dataset/{self.type}/input_ids'))
-        input_id_path = f'dataset/{self.type}/input_ids/input_ids_{file_index}.p'
-        bbox_path = f'dataset/{self.type}/bbox/bbox_{file_index}.p'
-        labels_path = f'dataset/{self.type}/labels/labels_{file_index}.p'
-        entities_path = f'dataset/{self.type}/entities/entities_{file_index}.p'
-        relations_path = f'dataset/{self.type}/relations/relations_{file_index}.p'
+        input_id_path = f'{root_dir}/{self.type}/input_ids/input_ids_{file_index}.p'
+        bbox_path = f'{root_dir}/{self.type}/bbox/bbox_{file_index}.p'
+        labels_path = f'{root_dir}/{self.type}/labels/labels_{file_index}.p'
+        entities_path = f'{root_dir}/{self.type}/entities/entities_{file_index}.p'
+        relations_path = f'{root_dir}/{self.type}/relations/relations_{file_index}.p'
         
         entities = None
         if self.path_exist(path = image_path):
@@ -269,19 +283,20 @@ class DatasetGenerator:
         
             
 class Custom_Dataset(Dataset):
-    def __init__(self, images_dir:str=None, images_resized_dir:str=None, bbox_dir:str = None, input_ids_dir :str = None, 
-                 labels_dir :str = None, entities_dir :str =None, relations_dir:str = None, type:str=None):
+    def __init__(self, root_dir:str=None, images_dir:str=None, images_resized_dir:str=None, bbox_dir:str = None, input_ids_dir :str = None, 
+                 labels_dir :str = None, entities_dir :str =None, relations_dir:str = None, type:str=None, no_re:bool=None):
         
         
         self.type=type
-        self.images_dir = f'dataset/{self.type}/{images_dir}'
-        self.images_resized_dir = f'dataset/{self.type}/{images_resized_dir}'
-        self.bbox_dir = f'dataset/{self.type}/{bbox_dir}'
-        self.input_ids_dir = f'dataset/{self.type}/{input_ids_dir}'
-        self.labels_dir = f'dataset/{self.type}/{labels_dir}'
-        self.entities_dir = f'dataset/{self.type}/{entities_dir}'
-        self.relations_dir = f'dataset/{self.type}/{relations_dir}'
-        
+        self.root_dir = root_dir
+        self.images_dir = f'{self.root_dir}/{self.type}/{images_dir}'
+        self.images_resized_dir = f'{self.root_dir}/{self.type}/{images_resized_dir}'
+        self.bbox_dir = f'{self.root_dir}/{self.type}/{bbox_dir}'
+        self.input_ids_dir = f'{self.root_dir}/{self.type}/{input_ids_dir}'
+        self.labels_dir = f'{self.root_dir}/{self.type}/{labels_dir}'
+        self.entities_dir = f'{self.root_dir}/{self.type}/{entities_dir}'
+        self.relations_dir = f'{self.root_dir}/{self.type}/{relations_dir}'
+        self.no_re = no_re
     
     def generate_id(self, idx:int = None):
         return f'sample_{idx}'
@@ -300,9 +315,11 @@ class Custom_Dataset(Dataset):
         idx_map_image_resized = self.get_file_index_map(path = self.images_resized_dir)
         idx_map_bbox = self.get_file_index_map(path = self.bbox_dir)
         idx_map_labels = self.get_file_index_map(path = self.labels_dir)
-        idx_map_entities = self.get_file_index_map(path = self.entities_dir)
-        idx_map_realations = self.get_file_index_map(path = self.relations_dir)
         idx_map_input_ids = self.get_file_index_map(path = self.input_ids_dir)
+        if not self.no_re:
+            idx_map_entities = self.get_file_index_map(path = self.entities_dir)
+            idx_map_realations = self.get_file_index_map(path = self.relations_dir)
+        
 
         image = cv2.imread(f'{self.images_dir}/{idx_map_image[idx]}')
         image_resized = cv2.imread(f'{self.images_resized_dir}/{idx_map_image_resized[idx]}')
@@ -319,16 +336,20 @@ class Custom_Dataset(Dataset):
         with open(labels_path, 'rb') as f:
             labels = pickle.load(f)
         
-        entities_path = f'{self.entities_dir}/{idx_map_entities[idx]}'
-        with open(entities_path, 'rb') as f:
-            entities = pickle.load(f)
+        if not self.no_re:
+            entities_path = f'{self.entities_dir}/{idx_map_entities[idx]}'
+            with open(entities_path, 'rb') as f:
+                entities = pickle.load(f)
         
-        realtions_path = f'{self.relations_dir}/{idx_map_realations[idx]}'
-        with open(realtions_path, 'rb') as f:
-            relations = pickle.load(f)
+            realtions_path = f'{self.relations_dir}/{idx_map_realations[idx]}'
+            with open(realtions_path, 'rb') as f:
+                relations = pickle.load(f)
         
-        id = self.generate_id(idx)
-        features  = {'id': id, 'input_ids': input_ids, 'bbox':bbox, 'labels':labels, 'original_image': image, 'image':image_resized, 'entities':entities, 'relations':relations}
+            id = self.generate_id(idx)
+            features  = {'id': id, 'input_ids': input_ids, 'bbox':bbox, 'labels':labels, 'original_image': image, 'image':image_resized, 'entities':entities, 'relations':relations}
+        else:
+            id = self.generate_id(idx)
+            features  = {'id': id, 'input_ids': input_ids, 'bbox':bbox, 'labels':labels, 'original_image': image, 'image':image_resized}
         '''Dataset = {
             "features" : {'id': id, 'input_ids': input_ids, 'labels':labels, 'original_image': image, 'image':image_resized, 'entities':entities, 'relations':relations},
             "num_rows" : self.__len__()    
@@ -466,9 +487,10 @@ if __name__=='__main__':
         configs = json.load(f)
     
     datasetGenerator = DatasetGenerator(**configs)
-    datasetGenerator.generate_Dataset(tokenizer_dir='./tokenizer_added_tokens', model_dir='./model_added_tokens')
+    target_dir = 'dataset_no_re' if datasetGenerator.no_re else 'dataset'
+    datasetGenerator.generate_Dataset(target_dir=target_dir, tokenizer_dir='./tokenizer_added_tokens', model_dir='./model_added_tokens')
     #datasetGenerator.test_gnerator(tokenizer_path='trained_models/august_23/tokenizer_added_tokens', model_path = './trained_models/august_23/ts_finetuned', file_index = 2)
-    datasetGenerator.test_gnerator(tokenizer_path='./tokenizer_added_tokens', model_path = './model_added_tokens', file_index = 23)
+    datasetGenerator.test_gnerator_re(root_dir='dataset',tokenizer_path='./tokenizer_added_tokens', model_path = './model_added_tokens', file_index = 1)
     #datasetGenerator.generate_Dataset(tokenizer_dir='./tokenizer_added_tokens', model_dir='./model_added_tokens')
     #datasetGenerator.test_gnerator(tokenizer_path='./tokenizer_added_tokens', model_path = './model_added_tokens', file_index = 1)
     

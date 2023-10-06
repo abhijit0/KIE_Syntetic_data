@@ -18,6 +18,7 @@ labels = ['O', 'B-QUESTION', 'B-ANSWER', 'B-HEADER', 'I-ANSWER', 'I-QUESTION', '
 id2label = {k:v for k,v in enumerate(labels)}
 label2id = {v:k for k,v in enumerate(labels)}
 
+
 def create_dataset(type:str = 'train', config_file = 'generator_config.json'):
     assert type in ('train', 'validation')
     with open(config_file) as f:
@@ -75,17 +76,6 @@ def compute_metrics_token_classification(p):
             "accuracy": results["overall_accuracy"],
         }
         
-def print_gpu_utilization():
-    nvmlInit()
-    handle = nvmlDeviceGetHandleByIndex(0)
-    info = nvmlDeviceGetMemoryInfo(handle)
-    print(f"GPU memory occupied: {info.used//1024**2} MB.")
-
-
-def print_summary(result):
-    print(f"Time: {result.metrics['train_runtime']:.2f}")
-    print(f"Samples/second: {result.metrics['train_samples_per_second']:.2f}")
-    print_gpu_utilization()
     
 def train_token_classification_model(tokenizer_path:str = None, model_path:str = None, batch_size :int = None, steps:int=None, model_output_dir:str=None):
     feature_extractor = LayoutLMv2FeatureExtractor(apply_ocr=False)
@@ -183,7 +173,7 @@ def train_realation_extracion_model(tokenizer_path:str = None, model_path:str = 
     trainer.save_model(model_output_dir)
 
 
-def model_eval_token_classification(model_input_dir:str=None, train_dataset:Custom_Dataset=None, test_dataset:Custom_Dataset=None, tokenizer_path:str=None):
+def model_eval_token_classification(model_input_dir:str=None, train_dataset:Custom_Dataset=None, test_dataset:Custom_Dataset=None, tokenizer_path:str=None, id2label:dict=None, label2id:dict=None):
     #print(os.listdir(model_input_dir))
     sub_dirs_model_input =os.listdir(model_input_dir)
     flag = True if len([sub_dir for sub_dir in sub_dirs_model_input if 'checkpoint' in sub_dir]) > 0 else False
@@ -282,8 +272,15 @@ def model_eval_relation_extraction(model_input_dir:str=None, train_dataset:Custo
     #predictions, labels, metrics = trainer.predict(test_dataset)
     results = trainer.evaluate()
     return results
-    
-    
+
+def change_labels():
+    global id2label
+    global label2id
+    with open('id2label_no_re.json', 'r') as f:
+        id2label = json.load(f)
+    with open('label2id_no_re.json', 'r') as f:
+        label2id = json.load(f)
+
 if __name__=='__main__':
     parser = argparse.ArgumentParser(
                     prog='TS_RE_trainer',
@@ -295,14 +292,17 @@ if __name__=='__main__':
     parser.add_argument('--tokenizer_path', type=str, required = True)
     parser.add_argument('--model_input_dir', type=str, required=True)
     parser.add_argument('--finetune_dir', type=str, required=True)
-    
+    parser.add_argument('--ts_type', type=str, default='re')
     
     args = parser.parse_args()
     assert args.mode in ('train', 'eval')
     assert args.type in ['ts', 're']
+    assert args.ts_type in ('re', 'no_re')
 
     if args.mode =='train':
         if args.type == 'ts':
+            if args.ts_type == 'no_re':
+                change_labels()
             train_token_classification_model(tokenizer_path=args.tokenizer_path, model_path=args.model_input_dir, batch_size=args.batch_size, steps=args.steps, model_output_dir=args.finetune_dir)
         else:
             train_realation_extracion_model(tokenizer_path=args.tokenizer_path, model_path=args.model_input_dir, batch_size=args.batch_size, steps=args.steps, model_output_dir=args.finetune_dir)

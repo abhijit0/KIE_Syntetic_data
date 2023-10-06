@@ -1,0 +1,18 @@
+{
+    "hertsteller":["Hersteller"],
+    "baujahr":["Baujahr"],
+    "seiriennummer":["Fabrik-Nr.", "Equipment-Nummer"],
+    "inventorynummber" : ["Anlagennummer", "Anlagen-Nr"],
+    "ort": ["Objektstandort", "Straße", "Stadt", "Plz","Standort", "Leistungsort","Prüfort"],
+    "mangelstatus":["Ergebnis der Prüfung", "Prüfergebnis"],
+    "wartungsdatum":["Leistungsdatum"],   
+    "checkup_date":["Prüfdatum", "Datum der Prüfung"],
+    "nächste_prüfung":["Nächste Hauptprüfung", "Nächste Prüfung"],
+    "servicefirma":["Wartungsfirma","Ausführende Fa.", "Ausführende Firma"],
+    "contact_person":["Durchgefürt von", "Service Techniker"],
+    "tragfähigkeit":["Tragfähigkeit"],
+    "anzahl_haltestellen":["Haltestellen / Zugangstellen"],
+    "Förderhöhe":["Förderhöhe"],
+    "nenngeschwindigkeit":["Geschwindigkeit"],
+    "vertrag_wartung":["Vertragsnummer", "Auftrags-Nr", "Auftrags-Nummer"]
+}
