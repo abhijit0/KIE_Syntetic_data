@@ -6,7 +6,6 @@ from transformers import TrainingArguments, Trainer, logging
 from transformers import AutoModelForTokenClassification
 from unilm.layoutlmft.layoutlmft.evaluation import re_score
 from unilm.layoutlmft.layoutlmft.trainers import XfunReTrainer
-from pynvml import *
 import argparse
 
 #logging.set_verbosity_error()
@@ -18,15 +17,16 @@ labels = ['O', 'B-QUESTION', 'B-ANSWER', 'B-HEADER', 'I-ANSWER', 'I-QUESTION', '
 id2label = {k:v for k,v in enumerate(labels)}
 label2id = {v:k for k,v in enumerate(labels)}
 
-
-def create_dataset(type:str = 'train', config_file = 'generator_config.json'):
+def create_dataset(type:str = 'train', config_file = 'generator_config.json', root_dir:str=None):
     assert type in ('train', 'validation')
     with open(config_file) as f:
         configs = json.load(f)
         
-    configs = {key:val for key,val in configs.items() if key not in ("num_files", "clear_all_old_files", "clear_old_files_type")}
+    configs = {key:val for key,val in configs.items() if key not in ("num_files", "clear_all_old_files", "clear_old_files_type", "datasets_init_configs")}
     configs['type'] = type
+    configs['root_dir'] = root_dir
     dataset = Custom_Dataset(**configs)
+    
     return dataset
 
 def unnormalize_box(bbox, width, height):
@@ -77,23 +77,23 @@ def compute_metrics_token_classification(p):
         }
         
     
-def train_token_classification_model(tokenizer_path:str = None, model_path:str = None, batch_size :int = None, steps:int=None, model_output_dir:str=None):
+def train_token_classification_model(tokenizer_path:str = None, model_path:str = None, batch_size :int = None, steps:int=None, model_output_dir:str=None, root_dir:str=None):
     feature_extractor = LayoutLMv2FeatureExtractor(apply_ocr=False)
-    tokenizer = LayoutXLMTokenizer.from_pretrained(tokenizer_path) 
+    tokenizer = LayoutXLMTokenizer.from_pretrained(tokenizer_path, padding=True, truncation=True)
     model = LayoutLMv2ForTokenClassification.from_pretrained(model_path,
                                                          id2label=id2label,
-                                                         label2id=label2id)
+                                                         label2id=label2id, num_labels = 33)
     
     data_collator = DataCollatorForTokenClassification(
     feature_extractor,
     tokenizer,
     pad_to_multiple_of=None,
     padding="max_length",
-    max_length=512,
+    max_length=512
     )
     
-    train_dataset_custom = create_dataset(type='train')
-    test_dataset_custom = create_dataset(type='validation')
+    train_dataset_custom = create_dataset(type='train', root_dir=root_dir)
+    test_dataset_custom = create_dataset(type='validation', root_dir=root_dir)
     #print(train_dataset_custom.keys())
     
 
@@ -127,7 +127,7 @@ def train_token_classification_model(tokenizer_path:str = None, model_path:str =
     trainer.train()
     trainer.save_model(model_output_dir)
     
-def train_realation_extracion_model(tokenizer_path:str = None, model_path:str = None, batch_size :int = None, steps:int=None, model_output_dir:str=None):
+def train_realation_extracion_model(tokenizer_path:str = None, model_path:str = None, batch_size :int = None, steps:int=None, model_output_dir:str=None, root_dir:str=None):
     tokenizer = LayoutXLMTokenizer.from_pretrained(tokenizer_path)
     model = LayoutLMv2ForRelationExtraction.from_pretrained(model_path)
     feature_extractor = LayoutLMv2FeatureExtractor(apply_ocr=False)
@@ -140,8 +140,8 @@ def train_realation_extracion_model(tokenizer_path:str = None, model_path:str = 
         max_length=512,
     )
     
-    train_dataset= create_dataset(type='train')
-    test_dataset= create_dataset(type='validation')
+    train_dataset= create_dataset(type='train', root_dir=root_dir)
+    test_dataset= create_dataset(type='validation', root_dir=root_dir)
     
     training_args = TrainingArguments(output_dir=model_output_dir,
                                   overwrite_output_dir=True,
@@ -278,8 +278,10 @@ def change_labels():
     global label2id
     with open('id2label_no_re.json', 'r') as f:
         id2label = json.load(f)
+        id2label = {int(key):val for key,val in id2label.items()}
     with open('label2id_no_re.json', 'r') as f:
         label2id = json.load(f)
+        label2id = {key:int(val) for key,val in label2id.items()}
 
 if __name__=='__main__':
     parser = argparse.ArgumentParser(
@@ -293,6 +295,7 @@ if __name__=='__main__':
     parser.add_argument('--model_input_dir', type=str, required=True)
     parser.add_argument('--finetune_dir', type=str, required=True)
     parser.add_argument('--ts_type', type=str, default='re')
+    parser.add_argument('--dataset_root_dir', type=str, required=True)
     
     args = parser.parse_args()
     assert args.mode in ('train', 'eval')
@@ -303,14 +306,19 @@ if __name__=='__main__':
         if args.type == 'ts':
             if args.ts_type == 'no_re':
                 change_labels()
-            train_token_classification_model(tokenizer_path=args.tokenizer_path, model_path=args.model_input_dir, batch_size=args.batch_size, steps=args.steps, model_output_dir=args.finetune_dir)
+            
+            train_token_classification_model(tokenizer_path=args.tokenizer_path, model_path=args.model_input_dir, 
+                batch_size=args.batch_size, steps=args.steps, model_output_dir=args.finetune_dir, root_dir=args.dataset_root_dir)
         else:
-            train_realation_extracion_model(tokenizer_path=args.tokenizer_path, model_path=args.model_input_dir, batch_size=args.batch_size, steps=args.steps, model_output_dir=args.finetune_dir)
+            train_realation_extracion_model(tokenizer_path=args.tokenizer_path, model_path=args.model_input_dir, 
+                batch_size=args.batch_size, steps=args.steps, model_output_dir=args.finetune_dir, root_dir=args.dataset_root_dir)
     else:
-        train_dataset = create_dataset(type='train')
-        test_dataset = create_dataset(type='validation')
+        train_dataset = create_dataset(type='train', root_dir=args.dataset_root_dir)
+        test_dataset = create_dataset(type='validation', root_dir=args.dataset_root_dir)
         if args.type == 'ts':
-            _, _, metrics = model_eval_token_classification(model_input_dir=args.model_input_dir, train_dataset=train_dataset, test_dataset= test_dataset, tokenizer_path=args.tokenizer_path)
+            if args.ts_type == 'no_re':
+                change_labels()
+            _, _, metrics = model_eval_token_classification(model_input_dir=args.model_input_dir, train_dataset=train_dataset, test_dataset= train_dataset, tokenizer_path=args.tokenizer_path)
             print(metrics)
         else:
             results = model_eval_relation_extraction(model_input_dir=args.model_input_dir, train_dataset=train_dataset, test_dataset= test_dataset, tokenizer_path=args.tokenizer_path)

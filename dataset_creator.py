@@ -400,8 +400,9 @@ class DataCollatorForTokenClassification:
             del feature["image"]
             del feature["id"]
             del feature["original_image"]
-            del feature["entities"]
-            del feature["relations"]
+            if "entities" in feature.keys() and "relations" in feature.keys():
+                del feature["entities"]
+                del feature["relations"]
 
         batch = self.tokenizer.pad(
             features,
