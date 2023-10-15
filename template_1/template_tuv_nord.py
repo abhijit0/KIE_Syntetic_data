@@ -27,7 +27,7 @@ class Template_TUV_Nord(Template):
 
     header_str_fixed = "Zugelassene Überwachungsstelle de"
     def __init__(self, start_x:int, start_y:int, shuffle_dict:bool=None, sentance_gen_type:str=None, sentances_dir:str=None,keys_to_include:list=None, 
-                 file_name:str= None, fonts_dir:str=None,random_numbers:bool=None):
+                 file_name:str= None, fonts_dir:str=None,random_numbers:bool=None, random_sentances:bool=None):
         super().__init__()
         self.start_x =start_x
         self.start_y = start_y
@@ -41,6 +41,7 @@ class Template_TUV_Nord(Template):
         self.fonts_dir = fonts_dir
         self.fake = Faker(locales)
         self.random_numbers= random_numbers
+        self.random_sentances = random_sentances
         self.include_pruf_interval = random.choice([*[0 for _ in range(10)], *[1 for _ in range(70)], *[2 for _ in range(20)]])
 
     def init_key_mappings(self):
@@ -171,6 +172,12 @@ class Template_TUV_Nord(Template):
         last_name = self.fake.last_name().replace('\n', ' ')
 
         return f'{prefix} {first_name} {last_name}'
+    
+    def generate_mangel_fake(self):
+        digit_suffix = f'{generate_random_digit_string(3)}A'
+        sentance = f'geringe Mängel {digit_suffix} {self.fake.sentence(nb_words = random.choice(np.arange(5,10)))}'
+        return sentance
+
 
     def generate_company_adress(self): # stands for Anschrift des Bewerters
         company_name = self.fake.company().replace('\n', ' ')
@@ -336,7 +343,10 @@ class Template_TUV_Nord(Template):
             return ['Keine']
         else:
             mange_count = random.choice(np.arange(1,4))
-            mangel_list = random.choices(self.fixed_sentances["festgestellte_mangel"], k= mange_count)
+            if self.random_sentances:
+                mangel_list = [self.generate_mangel_fake() for _ in range(mange_count)] 
+            else:
+                mangel_list = random.choices(self.fixed_sentances["festgestellte_mangel"], k= mange_count)
             return mangel_list
 
 

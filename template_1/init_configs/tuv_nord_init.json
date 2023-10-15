@@ -4,5 +4,6 @@
 "sentance_gen_type":"fixed",
 "keys_to_include" :["Equipment-Nummer","Auftrags-Nummer","Kunden-Nummer", "Akten-Nummer", "Leistungsort", "Baujahr", "Hersteller", "Tragfähigkeit", 
         "Fabrik-Nr", "Fabrik-/Herstell-Nr", "Nächste Hauptprüfung", "Prüfort", "Prüfdatum", "Betriebsteil", "Ausführende Fa.", "Ausführende Firma", "Prüfergebnis"],
-"random_numbers" : false,
+"random_numbers" : true,
+"random_sentances" : true,
 "sentances_dir" :"template_1/sentances_tuv_nord/fixed_sentances.json"}

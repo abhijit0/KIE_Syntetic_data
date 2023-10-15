@@ -1,17 +1,22 @@
 {
-    "num_files":1,
+    "num_files":2,
+    "root_dir":"dataset_image_noises_re",
+    "tokenizer_path": "tokenizer_added_tokens",
+    "input_model_path":"model_added_tokens",
     "images_dir" : "images",
     "images_resized_dir" : "images_resized",
     "bbox_dir":"bbox",
     "input_ids_dir" : "input_ids",
-    "labels_dir" : "labels",
+    "labels_re_dir" : "labels_re",
+    "labels_no_re_dir" : "labels_no_re",
     "entities_dir" : "entities",
     "relations_dir" : "relations",
     "type":"train",
     "clear_all_old_files" : true,
     "clear_old_files_type": [false, "validation"],
-    "datasets_init_configs":{ "tuv_nord":"template_1/init_configs/tuv_nord_init.json", "dekra":"template_1/init_configs/dekra_init.json", "kone":"template_1/init_configs/kone_init.json"
-    ,"schindler":"template_1/init_configs/schindler_init.json"},
-    "no_re":true
+    "datasets_init_configs":{ "tuv_nord":"template_1/init_configs/tuv_nord_init.json", "dekra":"template_1/init_configs/dekra_init.json", 
+    "schindler":"template_1/init_configs/schindler_init.json", "kone":"template_1/init_configs/kone_init.json"},
+    "no_re":false,
+    "image_noise_ratio":15
 
 }
