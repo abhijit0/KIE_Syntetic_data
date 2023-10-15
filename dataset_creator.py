@@ -24,13 +24,18 @@ from torch.utils.data import DataLoader
 from dataclasses import dataclass
 from transformers import LayoutLMv2FeatureExtractor
 import torch
+import augraphy
+import cv2
 
 from typing import Optional, Union
 
 class DatasetGenerator:
-    def __init__(self, num_files:int=None, images_dir:str=None, images_resized_dir:str=None, bbox_dir:str = None, input_ids_dir :str = None, 
-                 labels_dir :str = None, entities_dir :str =None, relations_dir:str = None, type:str=None, clear_all_old_files:bool=None, clear_old_files_type:list=None, datasets_init_configs:dict=None, no_re:bool=None):
+    def __init__(self, num_files:int=None, root_dir:str=None, tokenizer_path:str=None, input_model_path:str=None, images_dir:str=None, images_resized_dir:str=None, bbox_dir:str = None, input_ids_dir :str = None, 
+                 labels_dir :str = None, entities_dir :str =None, relations_dir:str = None, type:str=None, clear_all_old_files:bool=None, clear_old_files_type:list=None, datasets_init_configs:dict=None, no_re:bool=None, image_noise_ratio:int=None):
         self.num_files = num_files
+        self.root_dir = root_dir
+        self.tokenizer_path = tokenizer_path
+        self.input_model_path = input_model_path
         self.images_dir = images_dir
         self.bbox_dir = bbox_dir
         self.images_resized_dir = images_resized_dir
@@ -43,8 +48,23 @@ class DatasetGenerator:
         self.clear_old_files_type = clear_old_files_type
         self.datasets_init_configs = datasets_init_configs
         self.no_re=no_re
+        self.image_noise_ratio = image_noise_ratio
+        self.image_noise_ratio = int(self.image_noise_ratio * self.num_files / 100)
+        
         self.type_b = False  ## Only used while generating kone documents
         #assert (key.lower() for key in self.datasets_init_configs.keys()) in ('kone', 'dekra', 'schindler', 'tuv')
+        with open("image_noises.json", "r") as f:
+            self.augraphy_noises = json.load(f)
+    
+    def add_image_noise(self, image:np.ndarray=None):
+        image_noise = random.choice(list(self.augraphy_noises.keys()))
+        #image_noise = "DirtyDrum"
+        configs = self.augraphy_noises[image_noise]
+        if image_noise == 'WaterMark':
+            configs['watermark_font_type'] = cv2.FONT_HERSHEY_DUPLEX
+        image_noise_func = getattr(augraphy, image_noise)(**configs)
+        noisy_image = image_noise_func(image)
+        return noisy_image
     
     def get_tuv_nord_doc(self, init_config=None):
         template_schindler = Template_TUV_Nord(**init_config)
@@ -149,18 +169,25 @@ class DatasetGenerator:
         template_configs = {"get_doc_method":get_doc_method_map[key], "init_configs":init_config}
         return template_configs
     
-    def generate_Dataset(self, target_dir:str='dataset/', tokenizer_dir:str=None, model_dir:str = None):
+    def generate_Dataset(self):
 
-        if self.no_re:
+        target_dir = self.root_dir
+        tokenizer_dir = self.tokenizer_path
+        model_dir = self.input_model_path
+        if not self.no_re:
             sub_dirs = [self.images_dir, self.images_resized_dir, self.bbox_dir, self.input_ids_dir, self.labels_dir, self.entities_dir, self.relations_dir]
         else:
             sub_dirs = [self.images_dir, self.images_resized_dir, self.bbox_dir, self.input_ids_dir, self.labels_dir]
         
         tokenizer, model = self.initialize_tokenizer_model(tokenizer_dir=tokenizer_dir, model_dir=model_dir)
         
-        if self.clear_all_old_files:
-            shutil.rmtree(target_dir)
+        if os.path.exists(target_dir):
+            if self.clear_all_old_files:
+                shutil.rmtree(target_dir)
+                os.mkdir(target_dir)
+        else:
             os.mkdir(target_dir)
+        
             
         if self.clear_old_files_type is not None and self.clear_old_files_type[0] and not self.clear_all_old_files:
             shutil.rmtree(f'{target_dir}/{self.clear_old_files_type[1]}')
@@ -180,6 +207,7 @@ class DatasetGenerator:
             print(f'Generating dataset for {key}')       
             for i in tqdm(range(self.num_files)):
                 
+                add_image_noise = random.choice([i<self.image_noise_ratio for i in range(self.num_files)])
                 image = 0
                 while type(image) is int:
                     template_config = self.get_doc_method_mapping(key=key)
@@ -195,7 +223,10 @@ class DatasetGenerator:
                         image_resized = cv2.resize(image, (224,224))
                         image_name= os.path.join(f'{target_dir}/{self.type}/{self.images_dir}/image_{count + i}.jpeg')
                         images_resized_name= os.path.join(f'{target_dir}/{self.type}/{self.images_resized_dir}/image_{count +i}.jpeg')
-            
+                        
+                        if add_image_noise:
+                            image = self.add_image_noise(image=image)
+
                         cv2.imwrite(image_name, image)
                         cv2.imwrite(images_resized_name, image_resized)
                         ## input_ids
@@ -230,7 +261,11 @@ class DatasetGenerator:
     def path_exist(self, path:str=None):
         return os.path.exists(path)    
     
-    def test_gnerator_re(self, root_dir:str=None, tokenizer_path:str=None, model_path:str=None, file_index:int=None):
+    def test_gnerator_re(self,file_index:int=None):
+        root_dir = self.root_dir
+        tokenizer_path = self.tokenizer_path
+        model_path = self.input_model_path
+
         tokenizer = AutoTokenizer.from_pretrained(tokenizer_path)
         model = LayoutLMv2ForRelationExtraction.from_pretrained(model_path)
         image_path = f'{root_dir}/train/images/image_{file_index}.jpeg'
@@ -489,13 +524,14 @@ if __name__=='__main__':
     
     datasetGenerator = DatasetGenerator(**configs)
     target_dir = 'dataset_no_re' if datasetGenerator.no_re else 'dataset'
-    datasetGenerator.generate_Dataset(target_dir=target_dir, tokenizer_dir='./tokenizer_added_tokens', model_dir='./model_added_tokens')
+    datasetGenerator.generate_Dataset()
     #datasetGenerator.test_gnerator(tokenizer_path='trained_models/august_23/tokenizer_added_tokens', model_path = './trained_models/august_23/ts_finetuned', file_index = 2)
-    datasetGenerator.test_gnerator_re(root_dir='dataset',tokenizer_path='./tokenizer_added_tokens', model_path = './model_added_tokens', file_index = 1)
+    datasetGenerator.test_gnerator_re(file_index = 1)
     #datasetGenerator.generate_Dataset(tokenizer_dir='./tokenizer_added_tokens', model_dir='./model_added_tokens')
     #datasetGenerator.test_gnerator(tokenizer_path='./tokenizer_added_tokens', model_path = './model_added_tokens', file_index = 1)
     
-    configs = {key:val for key,val in configs.items() if key not in ("num_files", "clear_all_old_files", "clear_old_files_type", "datasets_init_configs")}
+    configs = {key:val for key,val in configs.items() if key not in ("num_files", "clear_all_old_files", "clear_old_files_type", 
+                                                                     "datasets_init_configs", "tokenizer_path","input_model_path", "image_noise_ratio")}
     custom_dataset = Custom_Dataset(**configs)
     #print(len(custom_dataset))
     

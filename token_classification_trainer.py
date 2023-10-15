@@ -111,6 +111,7 @@ def train_token_classification_model(tokenizer_path:str = None, model_path:str =
         learning_rate=1e-5,
         remove_unused_columns=False,
         push_to_hub=False, # we'd like to push our model to the hub during training 
+        save_strategy="no"
     )
 
     # Initialize our Trainer
@@ -154,7 +155,8 @@ def train_realation_extracion_model(tokenizer_path:str = None, model_path:str = 
                                   warmup_ratio=0.1,
                                   learning_rate=1e-5,
                                   push_to_hub=False,
-                                  no_cuda=False
+                                  no_cuda=False,
+                                  save_strategy="no",
                                 )
 
     trainer = XfunReTrainer(
