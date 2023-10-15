@@ -17,15 +17,18 @@ labels = ['O', 'B-QUESTION', 'B-ANSWER', 'B-HEADER', 'I-ANSWER', 'I-QUESTION', '
 id2label = {k:v for k,v in enumerate(labels)}
 label2id = {v:k for k,v in enumerate(labels)}
 
-def create_dataset(type:str = 'train', config_file = 'generator_config.json', root_dir:str=None):
+def create_dataset(type:str = 'train', config_file = 'generator_config.json', root_dir:str=None, no_re:bool=None):
     assert type in ('train', 'validation')
-    with open(config_file) as f:
-        configs = json.load(f)
+    #with open(config_file) as f:
+    #    configs = json.load(f)
         
-    configs = {key:val for key,val in configs.items() if key not in ("num_files", "clear_all_old_files", "clear_old_files_type", "datasets_init_configs")}
-    configs['type'] = type
-    configs['root_dir'] = root_dir
-    dataset = Custom_Dataset(**configs)
+    #configs = {key:val for key,val in configs.items() if key not in ("num_files", "clear_all_old_files", "clear_old_files_type", "datasets_init_configs")}
+    dataset_configs = load_dataset_config(configs_path=config_file, no_re=no_re)
+    dataset_configs['type'] = type
+    dataset_configs['root_dir'] = root_dir
+    
+    
+    dataset = Custom_Dataset(**dataset_configs)
     
     return dataset
 
@@ -303,10 +306,11 @@ if __name__=='__main__':
     assert args.mode in ('train', 'eval')
     assert args.type in ['ts', 're']
     assert args.ts_type in ('re', 'no_re')
-
+    
+    no_re = True if args.ts_type == 'no_re' else False
     if args.mode =='train':
         if args.type == 'ts':
-            if args.ts_type == 'no_re':
+            if no_re:
                 change_labels()
             
             train_token_classification_model(tokenizer_path=args.tokenizer_path, model_path=args.model_input_dir, 
@@ -315,8 +319,8 @@ if __name__=='__main__':
             train_realation_extracion_model(tokenizer_path=args.tokenizer_path, model_path=args.model_input_dir, 
                 batch_size=args.batch_size, steps=args.steps, model_output_dir=args.finetune_dir, root_dir=args.dataset_root_dir)
     else:
-        train_dataset = create_dataset(type='train', root_dir=args.dataset_root_dir)
-        test_dataset = create_dataset(type='validation', root_dir=args.dataset_root_dir)
+        train_dataset = create_dataset(type='train', root_dir=args.dataset_root_dir, no_re = no_re)
+        test_dataset = create_dataset(type='validation', root_dir=args.dataset_root_dir, no_re = no_re)
         if args.type == 'ts':
             if args.ts_type == 'no_re':
                 change_labels()
