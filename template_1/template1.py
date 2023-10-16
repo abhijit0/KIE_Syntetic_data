@@ -29,18 +29,13 @@ page_no = 'Seite 1 von 1'
 
 class Template_Dekra(Template):
     
-    def __init__(self, start_x: int = None, start_y:int = None, token_spacing: int= None
-                 , line_spacing:int = None, key_spacing:int = None, header_spacing:int = None, section_spacing:int = None, line_break:str=None,  header:str= None, file_name:str= None, report_name:str=None, page_no:int = 1, 
+    def __init__(self, start_x: int = None, start_y:int = None, section_spacing:int = None, line_break:str=None,  header:str= None, file_name:str= None, report_name:str=None, page_no:int = 1, 
                  fonts_dir:str=None, fixed_sentances_path:str=None, synonyms_file_path:str=None, keys_to_include:list=None, shuffle_dict:bool=None, random_numbers:bool=None):
         super().__init__()
         self.start_x = start_x
         self.start_x_temp = start_x
         self.start_y = start_y
         self.start_y_temp = start_y
-        self.token_spacing = token_spacing
-        self.line_spacing = line_spacing
-        self.key_spacing = key_spacing
-        self.header_spacing = header_spacing
         self.section_spacing = section_spacing
         self.line_break = line_break
         self.header = header
